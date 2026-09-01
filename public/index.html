@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>namegame.fun</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #faf7f2;
+      --fg: #1c1b1a;
+      --accent: #e0562c;
+      --muted: #6b6660;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #171513;
+        --fg: #f0ede8;
+        --accent: #ff7a4d;
+        --muted: #9a938b;
+      }
+    }
+    * { margin: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100svh;
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+    }
+    main { text-align: center; max-width: 32rem; }
+    h1 {
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+    }
+    h1 span { color: var(--accent); }
+    p {
+      margin-top: 1rem;
+      font-size: 1.125rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>name<span>game</span>.fun</h1>
+    <p>Something fun is coming soon.</p>
+  </main>
+</body>
+</html>

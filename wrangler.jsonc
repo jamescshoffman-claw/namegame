@@ -1,0 +1,12 @@
+{
+  "name": "namegame",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./public"
+  }
+  // Once namegame.fun is active on Cloudflare, uncomment to attach the domain:
+  // ,"routes": [
+  //   { "pattern": "namegame.fun", "custom_domain": true },
+  //   { "pattern": "www.namegame.fun", "custom_domain": true }
+  // ]
+}
