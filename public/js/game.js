@@ -5,7 +5,8 @@
 // draining while the page is closed). ?practice bypasses the daily lock and
 // never writes storage.
 (() => {
-  const START_MS = 10000;   // the clock; every correct answer resets it
+  const START_MS = 10000;   // first clock of each category
+  const RESET_MS = 7000;    // the clock after every correct answer
   const $ = id => document.getElementById(id);
 
   // Pixel-art icons replace emoji everywhere in the UI (share text keeps
@@ -63,17 +64,20 @@
   }
 
   // ---------- timer ----------
+  let allot = START_MS;     // what a full bar currently represents
   function startTimer() {
+    allot = START_MS;
     deadline = Date.now() + START_MS;
     cancelAnimationFrame(timerRAF);
     tickTimer();
   }
   function extendTimer() {
-    deadline = Date.now() + START_MS; // full reset — 10-second bursts
+    allot = RESET_MS;
+    deadline = Date.now() + RESET_MS; // shorter bursts once you're rolling
   }
   function tickTimer() {
     const left = deadline - Date.now();
-    const frac = Math.min(1, Math.max(0, left / START_MS));
+    const frac = Math.min(1, Math.max(0, left / allot));
     const bar = $('timer-fill');
     bar.style.width = (frac * 100) + '%';
     $('timer-num').textContent = Math.max(0, Math.ceil(left / 1000)) + 's';
