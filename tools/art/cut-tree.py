@@ -23,6 +23,31 @@ def fill_row_gaps(img):
                 px[x, y] = px[x - 1, y]
 
 
+TRUNK_W = 26  # width the tiled trunk sprite is cut to
+
+
+def trunk_span(img, y):
+    """(min x, max x) of opaque pixels in row y."""
+    px = img.load()
+    xs = [x for x in range(img.width) if px[x, y][3] > 0]
+    return (xs[0], xs[-1]) if xs else (0, img.width - 1)
+
+
+def fit_base(base):
+    """Scale the base so ITS trunk column matches the tiled trunk's width,
+    then pad so that column is horizontally centered — the scene draws the
+    base centered on the trunk line."""
+    lo, hi = trunk_span(base, base.height // 20)  # a row near the top = pure trunk
+    scale = TRUNK_W / (hi - lo + 1)
+    base = scale_to(base, w=max(1, round(base.width * scale)))
+    lo, hi = trunk_span(base, base.height // 20)
+    mid = (lo + hi) // 2
+    off = base.width // 2 - mid  # shift needed to center the trunk column
+    out = Image.new("RGBA", (base.width + 2 * abs(off), base.height), (0, 0, 0, 0))
+    out.alpha_composite(base, (max(0, 2 * off), 0))
+    return out
+
+
 def main():
     src = os.path.join(OUT, "tree-tiles.png")
     if not os.path.exists(src):
@@ -36,9 +61,9 @@ def main():
     trunk = trunk.crop((0, cap, trunk.width, trunk.height - cap))
     fill_row_gaps(trunk)
     entries = {
-        "trunk": save_sprite("trunk", scale_to(trunk, w=26)),
+        "trunk": save_sprite("trunk", scale_to(trunk, w=TRUNK_W)),
         "branch": save_sprite("branch", scale_to(branch, w=68)),
-        "treebase": save_sprite("treebase", scale_to(base, w=96)),
+        "treebase": save_sprite("treebase", fit_base(base)),
         "leaf": save_sprite("leaf", scale_to(leaf, w=30)),
     }
     merge_manifest(entries)
