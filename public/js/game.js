@@ -223,7 +223,8 @@
   }
 
   function renderOver(sc, bd, finished) {
-    $('over-title').innerHTML = sc >= 30 ? `${icon('rocket')} You reached space!`
+    $('over-title').innerHTML = sc >= 50 ? `${icon('alien')} You reached another planet!`
+      : sc >= 30 ? `${icon('rocket')} You reached space!`
       : sc >= 20 ? `${icon('moon', 'assets/')} You climbed into the night!`
       : sc >= 10 ? `${icon('sun', 'assets/')} What a climb!`
       : `${icon('acorn')} The climb is over!`;

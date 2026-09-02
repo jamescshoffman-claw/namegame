@@ -193,6 +193,56 @@
           "h": 24
         }
       ]
+    },
+    "ufo": {
+      "file": "ufo.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 34,
+          "h": 26
+        },
+        {
+          "x": 34,
+          "y": 0,
+          "w": 34,
+          "h": 26
+        }
+      ]
+    },
+    "alienwalk": {
+      "file": "alienwalk.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 16,
+          "h": 20
+        }
+      ]
+    },
+    "alieneat": {
+      "file": "alieneat.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 14,
+          "h": 18
+        }
+      ]
+    },
+    "alienground": {
+      "file": "alienground.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 147
+        }
+      ]
     }
   }
 }

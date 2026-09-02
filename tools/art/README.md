@@ -43,6 +43,11 @@ python tools/art/cut-ground.py
 node tools/art/gen-asset.mjs stump tools/art/prompts/stump.txt 1024x1024 --ref tools/art/out/tree-tiles.png
 python tools/art/cut-stump.py
 
+# Aliens: UFO (2 frames), walker, eater + alien.png icon; also recolors
+# ground.png into alienground.png (the branch-50 floating planet)
+node tools/art/gen-asset.mjs aliens tools/art/prompts/aliens.txt 1024x1024 --ref tools/art/out/squirrel.png
+python tools/art/cut-aliens.py
+
 # UI + category icons (replace every emoji in the HTML/game UI; game.js
 # maps category emoji -> icon name in CAT_ICONS)
 node tools/art/gen-asset.mjs icons tools/art/prompts/icons.txt 1024x1024 --ref tools/art/out/squirrel.png

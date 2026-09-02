@@ -511,6 +511,82 @@ const Scene = (() => {
     drawSpr('treebase', TRUNK_X - f.w / 2, p.y + 20 - f.h, { dark: darkness(alt) });
   }
 
+  // ---------- aliens ----------
+  const PLANET_ALT = 50;                 // branch where the alien planet sits
+
+  function drawAlienBlob(x, y) {
+    pixelCircle(x, y - 4, 5, '#5dbb63');
+    ctx.fillStyle = '#0d1a0d';
+    ctx.fillRect(x - 3, y - 6, 2, 2);
+    ctx.fillRect(x + 1, y - 6, 2, 2);
+  }
+
+  // Flying saucers cruising through the space band
+  function drawUfos(alt, now) {
+    if (alt < 33) return;
+    for (let i = 0; i < 7; i++) {
+      const p = toScreen(0, -(37 + i * 4.6) * BRANCH_DY - 14);
+      if (p.y < -30 || p.y > H + 30) continue;
+      const span = W + 90;
+      const t = (now / (28 + i * 7) + i * 431) % (span * 2);
+      const fwd = t < span;
+      const x = Math.round((fwd ? t : span * 2 - t) - 45);
+      const y = Math.round(p.y + Math.sin(now / 500 + i * 1.7) * 4);
+      const fr = Math.floor(now / 260 + i) % 2;
+      if (!drawSpr('ufo', x - 17, y - 13, { frame: fr, flip: !fwd })) {
+        ctx.fillStyle = '#9aa2b2';
+        ctx.fillRect(x - 12, y, 24, 5);
+        ctx.fillRect(x - 7, y - 5, 14, 5);
+        ctx.fillStyle = '#cfe3f5';
+        ctx.fillRect(x - 4, y - 8, 8, 4);
+        ctx.fillStyle = '#ffd75e';
+        for (let k = -8; k <= 8; k += 8) ctx.fillRect(x + k - 1, y + 2, 2, 2);
+      }
+    }
+  }
+
+  // The alien planet: a floating island of recolored ground the tree passes
+  // through, with aliens pacing and munching space fruit on its surface.
+  function drawAlienPlanet(alt, now) {
+    const surf = toScreen(0, -PLANET_ALT * BRANCH_DY + 26);
+    if (surf.y > H + 180 || surf.y < -80) return;
+    const gy = surf.y;
+    const gs = spr('alienground');
+    if (gs) {
+      const f = gs.frames[0];
+      drawSpr('alienground', 0, gy - 16);
+      ctx.fillStyle = '#141c38';           // tapered floating-island underside
+      ctx.fillRect(0, gy - 16 + f.h, W, 3);
+      ctx.fillRect(16, gy - 13 + f.h, W - 32, 3);
+      ctx.fillRect(48, gy - 10 + f.h, W - 96, 3);
+    } else {
+      ctx.fillStyle = '#7a4fd0';
+      ctx.fillRect(0, gy, W, 10);
+      ctx.fillStyle = '#24406e';
+      ctx.fillRect(0, gy + 10, W, 90);
+    }
+    // two eaters bobbing over their fruit, clear of the trunk
+    for (let i = 0; i < 2; i++) {
+      const x = [56, 268][i];
+      const bob = Math.floor(now / 350 + i) % 2;
+      if (!drawSpr('alieneat', x - 8, gy - 18 + bob, { flip: i === 1 })) {
+        drawAlienBlob(x, gy - 2);
+      }
+    }
+    // two walkers pacing their own stretch of the surface
+    for (let i = 0; i < 2; i++) {
+      const [a, b] = [[24, 118], [202, 296]][i];
+      const span = b - a;
+      const t = (now / (34 + i * 11)) % (span * 2);
+      const fwd = t < span;
+      const x = Math.round(a + (fwd ? t : span * 2 - t));
+      const step = Math.floor(now / 180 + i) % 2;
+      if (!drawSpr('alienwalk', x - 8, gy - 20 - step, { flip: !fwd })) {
+        drawAlienBlob(x, gy - 2);
+      }
+    }
+  }
+
   // The stump the squirrel starts on: its top surface meets the ground
   // perch (branchTip(0)) so the squirrel stands ON something.
   function drawStump(alt) {
@@ -583,10 +659,12 @@ const Scene = (() => {
     drawCelestials(alt, now);
     drawClouds(alt);
     drawBirds(alt, now);
+    drawUfos(alt, now);
     drawTree(alt, Math.max(branch, jump ? jump.to : 0));
     drawGround(alt);
     drawTreeBase(alt);
     drawStump(alt);
+    drawAlienPlanet(alt, now);
     drawSquirrel(now);
     requestAnimationFrame(frame);
   }

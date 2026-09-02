@@ -1,0 +1,20 @@
+16-bit pixel art sprite sheet, Stardew Valley style, crisp chunky pixels,
+no anti-aliasing, clean dark outlines. A 2x2 grid, each sprite centered in
+its own quadrant with generous empty margin, nothing touching quadrant
+edges, plain background, no text:
+
+top-left: a classic flying saucer UFO seen from the side, metallic grey
+with a glass dome on top, a tiny green alien pilot visible inside the dome,
+three small yellow lights along the rim.
+
+top-right: the SAME flying saucer, tilted slightly, with its rim lights in
+alternate positions (an animation frame of the first).
+
+bottom-left: a small cute green alien creature, side view facing RIGHT,
+mid-stride walking, big black oval eyes, two short antennae with glowing
+tips, rounded body, tiny legs.
+
+bottom-right: the same green alien crouched down, happily munching a
+glowing pink space fruit held in both hands.
+
+Consistent palette, at most 14 colors total.
