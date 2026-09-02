@@ -164,7 +164,8 @@
         el.textContent = 'First climber of the day!';
       } else {
         const beat = Math.round((s.below / (s.players - 1)) * 100);
-        el.textContent = `You climbed higher than ${beat}% of today's ${s.players} climbers`;
+        const avg = s.avg != null ? ` · average climb: ${s.avg}` : '';
+        el.textContent = `You climbed higher than ${beat}% of today's ${s.players} climbers${avg}`;
       }
     } catch { /* offline or table missing — just skip the stats line */ }
   }
