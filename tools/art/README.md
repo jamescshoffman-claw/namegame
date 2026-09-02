@@ -39,6 +39,10 @@ python tools/art/cut-backdrops.py
 node tools/art/gen-asset.mjs ground tools/art/prompts/ground.txt 1536x1024 --ref tools/art/out/squirrel.png
 python tools/art/cut-ground.py
 
+# The stump the squirrel starts on (bark palette from the tree sheet)
+node tools/art/gen-asset.mjs stump tools/art/prompts/stump.txt 1024x1024 --ref tools/art/out/tree-tiles.png
+python tools/art/cut-stump.py
+
 # UI + category icons (replace every emoji in the HTML/game UI; game.js
 # maps category emoji -> icon name in CAT_ICONS)
 node tools/art/gen-asset.mjs icons tools/art/prompts/icons.txt 1024x1024 --ref tools/art/out/squirrel.png

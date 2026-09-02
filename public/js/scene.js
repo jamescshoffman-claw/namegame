@@ -508,6 +508,29 @@ const Scene = (() => {
     drawSpr('treebase', TRUNK_X - f.w / 2, p.y + 20 - f.h, { dark: darkness(alt) });
   }
 
+  // The stump the squirrel starts on: its top surface meets the ground
+  // perch (branchTip(0)) so the squirrel stands ON something.
+  function drawStump(alt) {
+    const g = toScreen(0, 0);
+    if (g.y > H + 100) return;
+    const t = branchTip(0);
+    const p = toScreen(t.x, t.y);
+    const s = spr('stump');
+    if (s) {
+      const f = s.frames[0];
+      drawSpr('stump', p.x - f.w / 2, p.y - 2, { dark: darkness(alt) });
+    } else {
+      const dk = darkness(alt);
+      ctx.fillStyle = css(lerpC([90, 58, 32], [40, 30, 24], dk));
+      ctx.fillRect(p.x - 11, p.y + 1, 22, 16);
+      ctx.fillRect(p.x - 14, p.y + 13, 28, 4);           // root flare
+      ctx.fillStyle = css(lerpC([216, 176, 106], [96, 84, 62], dk));
+      ctx.fillRect(p.x - 10, p.y - 1, 20, 4);            // sawn top
+      ctx.fillStyle = css(lerpC([166, 126, 66], [72, 62, 46], dk));
+      ctx.fillRect(p.x - 5, p.y, 10, 2);                 // growth ring
+    }
+  }
+
   function squirrelPos(now) {
     if (!jump) return branchTip(branch);
     const t = Math.min(1, (now - jump.t0) / jump.dur);
@@ -556,6 +579,7 @@ const Scene = (() => {
     drawTree(alt, Math.max(branch, jump ? jump.to : 0));
     drawGround(alt);
     drawTreeBase(alt);
+    drawStump(alt);
     drawSquirrel(now);
     requestAnimationFrame(frame);
   }

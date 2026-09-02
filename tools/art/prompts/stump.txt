@@ -1,0 +1,8 @@
+16-bit pixel art of ONE single tree stump, Stardew Valley style, crisp
+chunky pixels, no anti-aliasing, clean dark outline. Side view of a short,
+wide oak stump: flat sawn top seen at a slight angle showing pale wood with
+two or three growth rings, warm brown bark sides with vertical ridges, a
+slight root flare at the bottom, one or two small grass tufts against the
+base. Wider than it is tall. Centered with generous empty margin, nothing
+touching the image edges, plain background, no other objects, no text.
+At most 12 colors, matching a warm sunrise-lit orchard palette.
