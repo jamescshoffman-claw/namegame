@@ -1,7 +1,9 @@
 // Game state machine: start → playing (3 categories, "Keep Climbing" between
 // them) → over. One scored attempt per local day; a run marks itself played
-// the moment it starts so a refresh can't buy a retry. ?practice bypasses the
-// daily lock and never writes storage.
+// the moment it starts so a refresh can't buy a retry — instead it RESUMES
+// where it left off (the clock deadline is a stored timestamp, so time keeps
+// draining while the page is closed). ?practice bypasses the daily lock and
+// never writes storage.
 (() => {
   const START_MS = 20000;   // clock per category
   const BONUS_MS = 3000;    // added per correct answer
@@ -47,6 +49,10 @@
     const s = load();
     return s.day === day ? s : null;
   }
+  // Everything a refresh needs to drop back into the run mid-climb
+  function saveProgress() {
+    save({ day, played: true, finished: false, score, breakdown, named, catIdx, deadline, state });
+  }
 
   // ---------- screens ----------
   function show(screen) {
@@ -81,13 +87,13 @@
   function begin() {
     catIdx = 0; score = 0; breakdown = [0, 0, 0]; named = [[], [], []]; used = new Set();
     Scene.reset();
-    save({ day, played: true, finished: false, score: 0, breakdown, named });
     state = 'playing';
     show(null);
     startCategory();
   }
 
-  function startCategory() {
+  // resumeDeadline: continue a refreshed run on its original clock
+  function startCategory(resumeDeadline) {
     const cat = cats[catIdx];
     const pill = $('cat-pill');
     pill.innerHTML = `${catIcon(cat)} ${cat.prompt}`;
@@ -97,7 +103,14 @@
     $('answer').value = '';
     $('answer').focus();
     setFeedback('');
-    startTimer();
+    if (resumeDeadline) {
+      deadline = resumeDeadline;
+      cancelAnimationFrame(timerRAF);
+      tickTimer();
+    } else {
+      startTimer();
+    }
+    saveProgress();
   }
 
   function setFeedback(msg, kind) {
@@ -146,24 +159,29 @@
     score++;
     breakdown[catIdx]++;
     named[catIdx].push(res.entry.c);
-    save({ day, played: true, finished: false, score, breakdown, named });
+    extendTimer();
+    saveProgress();
     Scene.hopTo(score);
     setScore(score);
     setFeedback(res.exact ? `✓ ${res.entry.c} +3s` : `✓ ${res.entry.c} (close enough!) +3s`, 'good');
     $('answer').value = '';
-    extendTimer();
+  }
+
+  function showBetween() {
+    const next = cats[catIdx + 1];
+    $('between-title').innerHTML = `${icon('hourglass')} Time's up!`;
+    $('between-msg').innerHTML =
+      `You named ${breakdown[catIdx]} ${cats[catIdx].title.toLowerCase()}. ` +
+      `Next up: ${catIcon(next)} ${next.title}`;
+    show('screen-between');
   }
 
   function onTimeUp() {
     cancelAnimationFrame(timerRAF);
     if (catIdx < cats.length - 1) {
       state = 'between';
-      const next = cats[catIdx + 1];
-      $('between-title').innerHTML = `${icon('hourglass')} Time's up!`;
-      $('between-msg').innerHTML =
-        `You named ${breakdown[catIdx]} ${cats[catIdx].title.toLowerCase()}. ` +
-        `Next up: ${catIcon(next)} ${next.title}`;
-      show('screen-between');
+      saveProgress();
+      showBetween();
     } else {
       endGame(true);
     }
@@ -198,7 +216,7 @@
   }
 
   function shareText(sc, bd) {
-    const lines = cats.map((c, i) => `${c.emoji} ${bd[i]}`).join(' · ');
+    const lines = cats.map((c, i) => `${c.title}: ${bd[i]}`).join('\n');
     return `🐿️ NameGame Day ${day + 1}\n🌳 Climbed ${sc} branches!\n${lines}\nhttps://namegame.fun`;
   }
 
@@ -244,8 +262,30 @@
     $('day-label').textContent = `Day ${day + 1}` + (practice ? ' · practice' : '');
 
     const rec = practice ? null : todaysRecord();
-    if (rec && rec.played) {
-      // Already played today — straight to results
+    if (rec && rec.played && !rec.finished && rec.state) {
+      // Mid-climb refresh — resume the run where it left off
+      score = rec.score || 0;
+      breakdown = rec.breakdown || [0, 0, 0];
+      named = rec.named || [[], [], []];
+      catIdx = Math.min(rec.catIdx || 0, cats.length - 1);
+      used = new Set(named.flat());
+      for (let i = 0; i < score; i++) Scene.hopTo(i + 1);
+      setScore(score);
+      if (rec.state === 'between') {
+        state = 'between';
+        showBetween();
+      } else if ((rec.deadline || 0) > Date.now()) {
+        state = 'playing';
+        show(null);
+        startCategory(rec.deadline);
+      } else {
+        // the clock ran out while the page was closed
+        state = 'playing';
+        show(null);
+        onTimeUp();
+      }
+    } else if (rec && rec.played) {
+      // Already finished today — straight to results
       score = rec.score || 0;
       breakdown = rec.breakdown || [0, 0, 0];
       named = rec.named || [[], [], []];
