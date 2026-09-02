@@ -216,8 +216,7 @@
   }
 
   function shareText(sc, bd) {
-    const lines = cats.map((c, i) => `${c.title}: ${bd[i]}`).join('\n');
-    return `🐿️ NameGame Day ${day + 1}\n🌳 Climbed ${sc} branches!\n${lines}\nhttps://namegame.fun`;
+    return `🐿️ NameGame Day ${day + 1}\n🌳 ${bd.join(' · ')} = ${sc} branches\nhttps://namegame.fun`;
   }
 
   function renderOver(sc, bd, finished) {
