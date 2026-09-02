@@ -123,10 +123,18 @@
   ];
   function chosenAnimal() { return load().animal || 'squirrel'; }
 
+  // The picker lives on both the start and end screens
   function renderPicker() {
+    renderPickerInto('animal-picker', 'streak-label');
+    renderPickerInto('animal-picker-start', 'streak-label-start');
+  }
+
+  function renderPickerInto(pickerId, streakId) {
+    const pickerEl = $(pickerId);
+    if (!pickerEl) return;
     const streak = currentStreak();
-    $('streak-label').textContent = streak >= 2 ? `${streak}-day streak!` : '';
-    $('animal-picker').innerHTML = ANIMALS.map(a => {
+    $(streakId).textContent = streak >= 2 ? `${streak}-day streak!` : '';
+    pickerEl.innerHTML = ANIMALS.map(a => {
       const locked = streak < a.need;
       const sel = chosenAnimal() === a.key;
       return `<button class="skin${sel ? ' skin--sel' : ''}${locked ? ' skin--locked' : ''}"` +
@@ -135,7 +143,7 @@
         `<span class="skin__need">${locked ? a.need + '-day streak' : a.label}</span>` +
         `</button>`;
     }).join('');
-    for (const btn of $('animal-picker').querySelectorAll('button:not([disabled])')) {
+    for (const btn of pickerEl.querySelectorAll('button:not([disabled])')) {
       btn.addEventListener('click', () => {
         save({ animal: btn.dataset.animal });
         Scene.setAnimal(btn.dataset.animal);
@@ -374,6 +382,7 @@
     await Scene.init($('scene'));
     Scene.reset();
     Scene.setAnimal(chosenAnimal());
+    renderPicker();
     setScore(0);
     $('day-label').textContent = `Day ${day + 1}` + (practice ? ' · practice' : '');
 

@@ -243,8 +243,8 @@ button.big.secondary { background: #f5e3c3; color: #5a3a20; margin-top: 10px; }
 #over-breakdown { display: grid; gap: 4px; font-size: 15px; }
 #over-stats { margin-top: 10px; font-size: 13px; font-weight: 800; color: #3a7d2e; min-height: 16px; }
 #over-best { margin-top: 6px; font-size: 13px; font-weight: 700; color: #b5622d; }
-#streak-label { margin-top: 8px; font-size: 13px; font-weight: 800; color: #e0562c; }
-#animal-picker { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+#streak-label, #streak-label-start { margin-top: 8px; font-size: 13px; font-weight: 800; color: #e0562c; }
+#animal-picker, #animal-picker-start { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
 .skin {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 6px 10px;
