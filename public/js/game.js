@@ -88,10 +88,25 @@
     }
   }
 
+  // Secret dev reset: submitting "try" (or typing it on the over/between
+  // screens) wipes today's attempt and returns to the start screen.
+  function devRestart() {
+    cancelAnimationFrame(timerRAF);
+    save({ day, played: false, finished: false, score: 0, breakdown: [0, 0, 0] });
+    catIdx = 0; score = 0; breakdown = [0, 0, 0]; used = new Set();
+    Scene.reset();
+    $('score').textContent = '🌰 0';
+    $('answer').value = '';
+    setFeedback('');
+    state = 'start';
+    show('screen-start');
+  }
+
   function submit() {
     if (state !== 'playing') return;
     const raw = $('answer').value.trim();
     if (!raw) return;
+    if (raw.toLowerCase() === 'try') { devRestart(); return; }
     const cat = cats[catIdx];
     const res = Fuzzy.match(raw, cat.entries);
     if (!res) {
@@ -216,6 +231,12 @@
       } catch { /* user cancelled */ }
     });
     $('answer-form').addEventListener('submit', e => { e.preventDefault(); submit(); });
+    // The typed-anywhere half of the secret reset, for screens with no input
+    let secret = '';
+    document.addEventListener('keydown', e => {
+      if (e.key.length === 1) secret = (secret + e.key.toLowerCase()).slice(-3);
+      if (secret === 'try' && state !== 'playing') { secret = ''; devRestart(); }
+    });
     // Tapping Go must not steal focus from the input — losing focus would
     // dismiss the mobile keyboard between every answer.
     $('btn-go').addEventListener('pointerdown', e => e.preventDefault());
