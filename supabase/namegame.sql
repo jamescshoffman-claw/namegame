@@ -27,27 +27,33 @@ create table if not exists public.namegame_runs (
 create index if not exists namegame_runs_day_score
   on public.namegame_runs (day, score);
 
+-- The table is fully locked to clients: no policies, no direct privileges.
+-- All access goes through the two security-definer functions below (an
+-- upsert via ON CONFLICT would otherwise need a SELECT policy, which would
+-- expose everyone's rows).
 alter table public.namegame_runs enable row level security;
-
--- PostgREST needs table privileges AND a passing RLS policy.
-grant usage on schema public to anon, authenticated;
-grant insert, update on public.namegame_runs to anon, authenticated;
-
--- Post a run (the client upserts, so replays of the same day update the row).
 drop policy if exists "namegame: anyone can post a run" on public.namegame_runs;
-create policy "namegame: anyone can post a run"
-  on public.namegame_runs for insert
-  to public
-  with check (true);
-
 drop policy if exists "namegame: replays update a row" on public.namegame_runs;
-create policy "namegame: replays update a row"
-  on public.namegame_runs for update
-  to public
-  using (true)
-  with check (true);
+revoke all on public.namegame_runs from anon, authenticated;
 
--- No select policy on purpose: aggregates only, via the function below.
+-- Post (or replay-update) a run. Table CHECK constraints still apply.
+create or replace function public.namegame_submit(
+  p_day int, p_client uuid, p_score int, p_breakdown jsonb default null)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  insert into public.namegame_runs (day, client_id, score, breakdown)
+  values (p_day, p_client, p_score, p_breakdown)
+  on conflict (day, client_id)
+  do update set score = excluded.score, breakdown = excluded.breakdown;
+$$;
+
+revoke all on function public.namegame_submit(int, uuid, int, jsonb) from public;
+grant execute on function public.namegame_submit(int, uuid, int, jsonb) to anon, authenticated;
+
+-- Aggregate-only stats for a day.
 create or replace function public.namegame_stats(p_day int, p_score int)
 returns json
 language sql

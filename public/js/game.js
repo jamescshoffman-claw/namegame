@@ -74,10 +74,10 @@
   }
 
   async function submitRun(sc, bd) {
-    await fetch(SB_URL + '/namegame_runs?on_conflict=day,client_id', {
+    await fetch(SB_URL + '/rpc/namegame_submit', {
       method: 'POST',
-      headers: { ...SB_HEADERS, Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ day, client_id: clientId(), score: sc, breakdown: bd }),
+      headers: SB_HEADERS,
+      body: JSON.stringify({ p_day: day, p_client: clientId(), p_score: sc, p_breakdown: bd }),
     });
   }
 
