@@ -13,6 +13,7 @@
   let catIdx = 0;
   let score = 0;
   let breakdown = [0, 0, 0];
+  let named = [[], [], []];   // canonical answers given, per category
   let used = new Set();
   let deadline = 0;
   let timerRAF = 0;
@@ -35,7 +36,7 @@
 
   // ---------- screens ----------
   function show(screen) {
-    for (const id of ['screen-start', 'screen-between', 'screen-over']) {
+    for (const id of ['screen-start', 'screen-between', 'screen-over', 'screen-answers']) {
       $(id).classList.toggle('hidden', id !== screen);
     }
     $('hud').classList.toggle('hidden', screen !== null);
@@ -60,9 +61,9 @@
 
   // ---------- gameplay ----------
   function begin() {
-    catIdx = 0; score = 0; breakdown = [0, 0, 0]; used = new Set();
+    catIdx = 0; score = 0; breakdown = [0, 0, 0]; named = [[], [], []]; used = new Set();
     Scene.reset();
-    save({ day, played: true, finished: false, score: 0, breakdown });
+    save({ day, played: true, finished: false, score: 0, breakdown, named });
     state = 'playing';
     show(null);
     startCategory();
@@ -92,8 +93,8 @@
   // screens) wipes today's attempt and returns to the start screen.
   function devRestart() {
     cancelAnimationFrame(timerRAF);
-    save({ day, played: false, finished: false, score: 0, breakdown: [0, 0, 0] });
-    catIdx = 0; score = 0; breakdown = [0, 0, 0]; used = new Set();
+    save({ day, played: false, finished: false, score: 0, breakdown: [0, 0, 0], named: [[], [], []] });
+    catIdx = 0; score = 0; breakdown = [0, 0, 0]; named = [[], [], []]; used = new Set();
     Scene.reset();
     $('score').textContent = '🌰 0';
     $('answer').value = '';
@@ -120,7 +121,8 @@
     used.add(res.entry.c);
     score++;
     breakdown[catIdx]++;
-    save({ day, played: true, finished: false, score, breakdown });
+    named[catIdx].push(res.entry.c);
+    save({ day, played: true, finished: false, score, breakdown, named });
     Scene.hopTo(score);
     $('score').textContent = `🌰 ${score}`;
     setFeedback(res.exact ? `✓ ${res.entry.c}` : `✓ ${res.entry.c} (close enough!)`, 'good');
@@ -155,8 +157,20 @@
     const s = load();
     const best = !practice && (!s.best || score > s.best.score)
       ? { score, day } : s.best;
-    save({ day, played: true, finished, score, breakdown, best });
+    save({ day, played: true, finished, score, breakdown, named, best });
     renderOver(score, breakdown, finished);
+  }
+
+  function renderAnswers() {
+    $('answers-list').innerHTML = cats.map((c, i) => {
+      const got = new Set(named[i]);
+      const chips = c.entries.map(e =>
+        `<span class="chip${got.has(e.c) ? ' got' : ''}">${e.c}</span>`).join('');
+      return `<h3>${c.emoji} ${c.title} <small>${got.size}/${c.entries.length}</small></h3>` +
+        `<div class="chips">${chips}</div>`;
+    }).join('');
+    $('answers-list').scrollTop = 0;
+    show('screen-answers');
   }
 
   function shareText(sc, bd) {
@@ -181,8 +195,10 @@
     startCountdown();
   }
 
+  let countdownTimer = null;
   function startCountdown() {
     const el = $('countdown');
+    clearInterval(countdownTimer);
     function tick() {
       const now = new Date();
       const mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -193,7 +209,7 @@
       el.textContent = `Next climb in ${h}:${m}:${s}`;
     }
     tick();
-    setInterval(tick, 1000);
+    countdownTimer = setInterval(tick, 1000);
   }
 
   // ---------- boot ----------
@@ -208,6 +224,7 @@
       // Already played today — straight to results
       score = rec.score || 0;
       breakdown = rec.breakdown || [0, 0, 0];
+      named = rec.named || [[], [], []];
       for (let i = 0; i < score; i++) Scene.hopTo(i + 1); // restore the climb height
       renderOver(score, breakdown, rec.finished);
     } else {
@@ -216,6 +233,11 @@
 
     $('btn-begin').addEventListener('click', begin);
     $('btn-climb').addEventListener('click', keepClimbing);
+    $('btn-answers').addEventListener('click', renderAnswers);
+    $('btn-answers-close').addEventListener('click', () => {
+      state = 'over';
+      renderOver(score, breakdown, (load().finished !== false));
+    });
     $('btn-share').addEventListener('click', async () => {
       const text = shareText(score, breakdown);
       // Native share sheet only on touch devices — on desktop it's clunky

@@ -9,7 +9,8 @@ const Scene = (() => {
   const W = 320, H = 480;
   const BRANCH_DY = 52;          // vertical gap between branches
   const TRUNK_X = 160;           // trunk centerline
-  const BRANCH_LEN = 52;
+  const TRUNK_W = 24;
+  const BRANCH_LEN = 54;
 
   let ctx, canvas;
   let cameraY = 0;               // world y at screen center
@@ -18,7 +19,7 @@ const Scene = (() => {
   let sprites = null;            // loaded from assets/manifest.json if present
   let running = false;
 
-  // ---------- deterministic hash noise (stable star/cloud/bark placement) ----------
+  // ---------- deterministic hash noise (stable placement of everything) ----------
   function hash2(x, y) {
     let h = (x * 374761393 + y * 668265263) | 0;
     h = (h ^ (h >> 13)) * 1274126177;
@@ -26,7 +27,6 @@ const Scene = (() => {
   }
 
   // ---------- sky palette ----------
-  // Stops keyed by altitude in branches: [altitude, topColor, bottomColor]
   const SKY = [
     [0,  [126, 200, 227], [255, 178, 107]],  // sunrise
     [5,  [ 92, 170, 224], [160, 214, 235]],  // morning
@@ -55,7 +55,6 @@ const Scene = (() => {
     return [SKY[SKY.length - 1][1], SKY[SKY.length - 1][2]];
   }
 
-  // darkness 0 (day) → 1 (space); drives stars
   function darkness(alt) {
     if (alt < 14) return 0;
     if (alt < 22) return (alt - 14) / 8 * 0.8;
@@ -64,12 +63,15 @@ const Scene = (() => {
   }
 
   // ---------- squirrel pixel art (placeholder until generated art lands) ----------
-  const SQ_PAL = { 1: '#4a2c17', 2: '#b5622d', 3: '#eec39a', 4: '#8a4720', 5: '#1a1208', 6: '#ffffff', 7: '#d8823f' };
+  const SQ_PAL = {
+    1: '#452a15', 2: '#b5622d', 3: '#eec39a', 4: '#7d3f1c',
+    5: '#1a1208', 7: '#d8823f', 8: '#f2a07b',
+  };
   const SQ_SIT = [
     '................',
     '....44..........',
     '...4774.....11..',
-    '..477774...1221.',
+    '..477774...1821.',
     '..477774..122221',
     '.4777774..122521',
     '.4777774.1222221',
@@ -87,7 +89,7 @@ const Scene = (() => {
     '................',
     '................',
     '44..........11..',
-    '4774........1221',
+    '4774.......1821.',
     '.47774....122221',
     '..47774..1222521',
     '..47774122222221',
@@ -115,19 +117,42 @@ const Scene = (() => {
   }
 
   // ---------- world geometry ----------
-  function branchSide(k) { return k % 2 === 1 ? 1 : -1; } // 1 = right
+  function branchSide(k) { return k % 2 === 1 ? 1 : -1; }
   function branchTip(k) {
-    if (k === 0) return { x: TRUNK_X + 26, y: -6 };        // ground start, beside trunk
-    return { x: TRUNK_X + branchSide(k) * (BRANCH_LEN - 8), y: -k * BRANCH_DY };
+    if (k === 0) return { x: TRUNK_X + 30, y: -6 };
+    return { x: TRUNK_X + branchSide(k) * (BRANCH_LEN - 6), y: -k * BRANCH_DY };
   }
 
   function toScreen(wx, wy) { return { x: wx, y: H * 0.62 + (wy - cameraY) }; }
 
-  // ---------- drawing ----------
+  // ---------- drawing helpers ----------
+  function pixelCircle(cx, cy, rad, col) {
+    ctx.fillStyle = col;
+    for (let y = -rad; y <= rad; y++) {
+      const span = Math.floor(Math.sqrt(rad * rad - y * y));
+      ctx.fillRect(Math.round(cx - span), Math.round(cy + y), span * 2 + 1, 1);
+    }
+  }
+
+  // A leafy blob: dark base, mid body, light crown — the 3-tone shading that
+  // makes Stardew foliage read as volume instead of flat green.
+  function leafBlob(cx, cy, r, pal) {
+    pixelCircle(cx + 1, cy + 2, r, pal.dark);
+    pixelCircle(cx, cy, r, pal.mid);
+    pixelCircle(cx - Math.ceil(r / 3), cy - Math.ceil(r / 3), Math.max(2, r - 2), pal.light);
+  }
+
+  function leafPalette(alt) {
+    const day = { dark: [40, 94, 52], mid: [72, 138, 74], light: [116, 176, 98] };
+    const night = { dark: [18, 48, 40], mid: [32, 74, 56], light: [52, 100, 70] };
+    const t = darkness(alt);
+    const mix = k => css(lerpC(day[k], night[k], t));
+    return { dark: mix('dark'), mid: mix('mid'), light: mix('light') };
+  }
+
+  // ---------- sky & atmosphere ----------
   function drawSky(alt) {
     const [top, bot] = skyAt(alt);
-    // End the gradient at the ground line (when visible) so the horizon color
-    // actually shows at the horizon instead of hiding under the dirt.
     const groundY = toScreen(0, 0).y + 8;
     const bottom = Math.max(160, Math.min(H, groundY));
     const g = ctx.createLinearGradient(0, 0, 0, bottom);
@@ -140,7 +165,7 @@ const Scene = (() => {
   function drawStars(alt) {
     const d = darkness(alt);
     if (d <= 0.05) return;
-    const par = 0.35; // stars scroll slower than the tree
+    const par = 0.35;
     const offY = cameraY * par;
     for (let gx = 0; gx < 20; gx++) {
       for (let gy = -2; gy < 32; gy++) {
@@ -150,152 +175,237 @@ const Scene = (() => {
         const sx = Math.floor(gx * 16 + hash2(gx, cellY) * 14);
         const sy = Math.floor(cellY * 32 - offY + hash2(gx + 50, cellY) * 30);
         if (sy < -4 || sy > H + 4) continue;
-        const tw = hash2(gx + 99, cellY) > 0.8 ? 2 : 1;
+        const big = hash2(gx + 99, cellY) > 0.85;
         ctx.fillStyle = r < d * 0.06 ? '#fff7d6' : '#cfd8ef';
-        ctx.fillRect(sx, sy, tw, tw);
+        if (big) { // four-pointed twinkle
+          ctx.fillRect(sx, sy - 1, 1, 3);
+          ctx.fillRect(sx - 1, sy, 3, 1);
+        } else {
+          ctx.fillRect(sx, sy, 1, 1);
+        }
       }
     }
   }
 
-  function pixelCircle(cx, cy, rad, col) {
-    ctx.fillStyle = col;
-    for (let y = -rad; y <= rad; y++) {
-      const span = Math.floor(Math.sqrt(rad * rad - y * y));
-      ctx.fillRect(cx - span, cy + y, span * 2 + 1, 1);
-    }
-  }
-
-  function drawCelestials(alt) {
-    // Sun hugs the horizon at sunrise, gone by mid-morning
+  function drawCelestials(alt, now) {
+    // Sun: warm glow, disc, and slow-blinking rays at the sunrise horizon
     if (alt < 8) {
-      const p = toScreen(70, 8 - alt * 2);
+      const p = toScreen(74, 6 - alt * 2);
+      const y = Math.min(p.y, H - 46);
       const fade = Math.max(0, 1 - alt / 8);
+      ctx.globalAlpha = fade * 0.35;
+      pixelCircle(p.x, y, 26, '#ffdf9e');
       ctx.globalAlpha = fade;
-      pixelCircle(p.x, Math.min(p.y, H - 40), 18, '#ffd97a');
-      pixelCircle(p.x, Math.min(p.y, H - 40), 13, '#ffe9ad');
+      pixelCircle(p.x, y, 17, '#ffca5f');
+      pixelCircle(p.x, y, 13, '#ffe9ad');
+      pixelCircle(p.x - 4, y - 4, 6, '#fff7dd');
+      ctx.fillStyle = '#ffca5f';
+      const blink = Math.floor(now / 600) % 2;
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4 + blink * Math.PI / 8;
+        ctx.fillRect(Math.round(p.x + Math.cos(a) * 22), Math.round(y + Math.sin(a) * 22), 2, 2);
+      }
       ctx.globalAlpha = 1;
     }
-    // Moon rides through the night band
-    const moonY = -26 * BRANCH_DY;
-    const mp = toScreen(250, moonY);
-    if (mp.y > -30 && mp.y < H + 30) {
+    // Moon with glow and craters through the night band
+    const mp = toScreen(252, -26 * BRANCH_DY);
+    if (mp.y > -40 && mp.y < H + 40) {
+      ctx.globalAlpha = 0.25;
+      pixelCircle(mp.x, mp.y, 20, '#cdd6ec');
+      ctx.globalAlpha = 1;
       pixelCircle(mp.x, mp.y, 14, '#e8e6da');
-      pixelCircle(mp.x + 6, mp.y - 3, 11, css(skyAt(alt)[0])); // crescent bite
+      pixelCircle(mp.x + 3, mp.y - 2, 12, '#f4f2e6');
       ctx.fillStyle = '#c9c7bb';
-      ctx.fillRect(mp.x - 8, mp.y + 2, 3, 3);
-      ctx.fillRect(mp.x - 3, mp.y - 6, 2, 2);
+      ctx.fillRect(mp.x - 8, mp.y + 3, 4, 3);
+      ctx.fillRect(mp.x - 2, mp.y - 7, 3, 2);
+      ctx.fillRect(mp.x + 4, mp.y + 6, 2, 2);
+      ctx.fillRect(mp.x + 6, mp.y - 1, 2, 2);
     }
-    // Planets live in space
+    // Planets in space, shaded with a lit side and a dark limb
     const planets = [
-      { alt: 40, x: 60, r: 12, col: '#d98f4e', ring: true },   // ringed gas giant
-      { alt: 47, x: 245, r: 8, col: '#c1533f' },               // red planet
-      { alt: 54, x: 110, r: 10, col: '#5a8fd4', moonlet: true },// blue world
-      { alt: 62, x: 220, r: 14, col: '#9a7bc9', ring: true },
+      { alt: 40, x: 62, r: 13, base: '#d98f4e', lit: '#f0b579', dark: '#9c6132', ring: '#e8d8a8' },
+      { alt: 47, x: 246, r: 8, base: '#c1533f', lit: '#e07b5c', dark: '#8a3527' },
+      { alt: 54, x: 110, r: 11, base: '#5a8fd4', lit: '#8fb8e8', dark: '#3a5f9c', moonlet: true },
+      { alt: 62, x: 220, r: 15, base: '#9a7bc9', lit: '#c0a4e6', dark: '#6b4f96', ring: '#d8c8f0' },
     ];
     for (const pl of planets) {
       const pp = toScreen(pl.x, -pl.alt * BRANCH_DY);
-      if (pp.y < -40 || pp.y > H + 40) continue;
-      pixelCircle(pp.x, pp.y, pl.r, pl.col);
-      ctx.globalAlpha = 0.35;
-      pixelCircle(pp.x - pl.r / 3, pp.y - pl.r / 3, Math.max(2, pl.r - 4), '#ffffff');
-      ctx.globalAlpha = 1;
+      if (pp.y < -50 || pp.y > H + 50) continue;
+      pixelCircle(pp.x, pp.y, pl.r, pl.dark);
+      pixelCircle(pp.x - 2, pp.y - 2, pl.r - 1, pl.base);
+      pixelCircle(pp.x - Math.ceil(pl.r / 3), pp.y - Math.ceil(pl.r / 3), Math.max(2, pl.r - 5), pl.lit);
       if (pl.ring) {
-        ctx.fillStyle = '#e8d8a8';
-        ctx.fillRect(pp.x - pl.r - 8, pp.y + 1, pl.r * 2 + 16, 2);
+        ctx.fillStyle = pl.ring;
+        ctx.fillRect(pp.x - pl.r - 9, pp.y + 2, pl.r * 2 + 18, 2);
+        ctx.fillRect(pp.x - pl.r - 6, pp.y + 4, 5, 1);
+        ctx.fillRect(pp.x + pl.r + 1, pp.y + 4, 5, 1);
       }
-      if (pl.moonlet) pixelCircle(pp.x + pl.r + 8, pp.y - pl.r, 3, '#cccccc');
+      if (pl.moonlet) {
+        pixelCircle(pp.x + pl.r + 9, pp.y - pl.r, 3, '#b8b8c4');
+        pixelCircle(pp.x + pl.r + 8, pp.y - pl.r - 1, 2, '#dcdce4');
+      }
     }
   }
 
   function drawClouds(alt) {
     const d = 1 - darkness(alt);
     if (d <= 0.1) return;
-    ctx.globalAlpha = 0.85 * d;
-    for (let i = 0; i < 10; i++) {
-      const ca = 2 + i * 1.6;                       // cloud altitude in branches
-      const wy = -ca * BRANCH_DY;
-      const p = toScreen(0, wy);
-      if (p.y < -20 || p.y > H + 20) continue;
-      const cx = Math.floor(hash2(i, 7) * W);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(cx - 18, p.y, 36, 7);
-      ctx.fillRect(cx - 10, p.y - 5, 22, 5);
-      ctx.fillRect(cx - 24, p.y + 4, 14, 4);
+    ctx.globalAlpha = 0.92 * d;
+    for (let i = 0; i < 9; i++) {
+      const ca = 2 + i * 1.7;
+      const p = toScreen(0, -ca * BRANCH_DY);
+      if (p.y < -30 || p.y > H + 30) continue;
+      const cx = Math.floor(hash2(i, 7) * (W - 60)) + 30;
+      const big = hash2(i, 3) > 0.5;
+      const r = big ? 11 : 8;
+      // puffy 3-lobed cloud with a flat shaded base
+      pixelCircle(cx - r, p.y + 2, r - 2, '#cfd4e2');
+      pixelCircle(cx + r, p.y + 2, r - 2, '#cfd4e2');
+      pixelCircle(cx, p.y + 2, r, '#cfd4e2');
+      pixelCircle(cx - r, p.y, r - 2, '#ffffff');
+      pixelCircle(cx + r, p.y, r - 2, '#ffffff');
+      pixelCircle(cx, p.y - 2, r, '#ffffff');
+      ctx.fillStyle = '#eef2fa';
+      ctx.fillRect(cx - r - 6, p.y + 3, r * 2 + 12, 3);
     }
     ctx.globalAlpha = 1;
   }
 
-  function drawGround() {
-    const p = toScreen(0, 0);
-    if (p.y > H + 60) return;
-    ctx.fillStyle = '#5f9e3d';                       // grass
-    ctx.fillRect(0, p.y + 8, W, 10);
-    ctx.fillStyle = '#79b551';
-    for (let x = 0; x < W; x += 4) {
-      if (hash2(x, 0) > 0.5) ctx.fillRect(x, p.y + 6, 2, 2);
+  function drawBirds(alt, now) {
+    if (alt < 1 || alt > 13) return;
+    ctx.fillStyle = darkness(alt) > 0.3 ? '#2a2a3a' : '#3a4a5a';
+    for (let i = 0; i < 4; i++) {
+      const ba = 3 + i * 2.6;
+      const p = toScreen(0, -ba * BRANCH_DY);
+      if (p.y < -10 || p.y > H + 10) continue;
+      const drift = (now / 90 + i * 137) % (W + 60) - 30;
+      const bx = Math.round(drift);
+      const flap = Math.floor(now / 250 + i) % 2;
+      // tiny two-wing "m" bird
+      ctx.fillRect(bx - 2, p.y + (flap ? 0 : -1), 2, 1);
+      ctx.fillRect(bx + 1, p.y + (flap ? 0 : -1), 2, 1);
+      ctx.fillRect(bx, p.y, 1, 1);
     }
-    ctx.fillStyle = '#6e4a2c';                       // dirt below
-    ctx.fillRect(0, p.y + 18, W, H);
+  }
+
+  // ---------- ground & tree ----------
+  function drawGround(alt) {
+    const p = toScreen(0, 0);
+    if (p.y > H + 80) return;
+    const gy = p.y + 8;
+    const dk = darkness(alt);
+    const grass = css(lerpC([95, 158, 61], [40, 80, 48], dk));
+    const grassLight = css(lerpC([133, 190, 86], [60, 104, 62], dk));
+    const grassDark = css(lerpC([70, 122, 48], [28, 60, 38], dk));
+    // grass band with a scalloped edge
+    ctx.fillStyle = grass;
+    ctx.fillRect(0, gy, W, 12);
+    ctx.fillStyle = grassLight;
+    for (let x = 0; x < W; x += 3) {
+      const h = 1 + Math.floor(hash2(x, 1) * 3);
+      ctx.fillRect(x, gy - h, 2, h + 2); // blades poking up
+    }
+    ctx.fillStyle = grassDark;
+    for (let x = 0; x < W; x += 5) {
+      if (hash2(x, 2) > 0.55) ctx.fillRect(x, gy + 6 + Math.floor(hash2(x, 5) * 4), 2, 2);
+    }
+    // flowers scattered in the grass
+    const flowers = ['#e86a92', '#f0d05a', '#e8e8f0', '#e0784a'];
+    for (let x = 4; x < W; x += 9) {
+      const r = hash2(x, 9);
+      if (r > 0.72 && Math.abs(x - TRUNK_X) > 26) {
+        ctx.fillStyle = flowers[Math.floor(r * 20) % 4];
+        ctx.fillRect(x, gy - 3, 2, 2);
+        ctx.fillStyle = grassDark;
+        ctx.fillRect(x, gy - 1, 1, 2);
+      }
+    }
+    // dirt with strata and stones
+    ctx.fillStyle = '#6e4a2c';
+    ctx.fillRect(0, gy + 12, W, H);
     ctx.fillStyle = '#5a3a20';
+    ctx.fillRect(0, gy + 12, W, 2);
     for (let x = 0; x < W; x += 8) {
-      for (let y = 0; y < 8; y++) {
-        if (hash2(x, y + 3) > 0.75) ctx.fillRect(x + Math.floor(hash2(x, y) * 6), p.y + 22 + y * 8, 3, 2);
+      for (let row = 0; row < 10; row++) {
+        const r = hash2(x, row + 3);
+        if (r > 0.78) {
+          ctx.fillStyle = r > 0.92 ? '#8a8078' : '#5a3a20';
+          ctx.fillRect(x + Math.floor(hash2(x, row) * 6), gy + 18 + row * 9, 4, 3);
+        }
       }
     }
   }
 
-  function leafColor(alt) {
-    const day = ['#3e8e41', '#54a85a', '#2e6e33'];
-    const night = ['#1e4530', '#2a5a3e', '#173626'];
-    const t = darkness(alt);
-    return day.map((c, i) => {
-      const a = parseInt(c.slice(1), 16), b = parseInt(night[i].slice(1), 16);
-      const mix = ch => Math.round(lerp((a >> ch) & 255, (b >> ch) & 255, t));
-      return `rgb(${mix(16)},${mix(8)},${mix(0)})`;
-    });
-  }
-
   function drawTree(alt, maxBranch) {
     const top = toScreen(0, -(maxBranch + 8) * BRANCH_DY).y;
-    const bottom = Math.min(toScreen(0, 10).y, H);
-    // trunk with hash-textured bark
+    const bottom = Math.min(toScreen(0, 12).y, H);
+    const hw = TRUNK_W / 2;
+    const leaves = leafPalette(alt);
+
+    // trunk: core, shaded edges, wavy bark ridges, knots
     ctx.fillStyle = '#6b4a2f';
-    ctx.fillRect(TRUNK_X - 10, top, 20, bottom - top);
-    ctx.fillStyle = '#4a3220';
-    ctx.fillRect(TRUNK_X - 10, top, 3, bottom - top);
-    ctx.fillRect(TRUNK_X + 7, top, 3, bottom - top);
+    ctx.fillRect(TRUNK_X - hw, top, TRUNK_W, bottom - top);
     ctx.fillStyle = '#7d5836';
-    for (let y = Math.floor(top / 6) * 6; y < bottom; y += 6) {
-      const r = hash2(1, y + Math.floor(cameraY));
-      if (r > 0.4) ctx.fillRect(TRUNK_X - 6 + Math.floor(r * 10), y, 4, 2);
+    ctx.fillRect(TRUNK_X - hw + 4, top, 5, bottom - top);
+    ctx.fillStyle = '#4a3220';
+    ctx.fillRect(TRUNK_X - hw, top, 3, bottom - top);
+    ctx.fillRect(TRUNK_X + hw - 4, top, 4, bottom - top);
+    ctx.fillStyle = '#5a3a20';
+    for (let y = Math.floor(top / 4) * 4; y < bottom; y += 4) {
+      const wob = Math.floor(hash2(3, Math.floor(y / 16)) * 3);
+      if (hash2(2, y) > 0.35) ctx.fillRect(TRUNK_X - 1 + wob, y, 2, 3);
+      if (hash2(9, y) > 0.6) ctx.fillRect(TRUNK_X - hw + 6, y, 2, 2);
     }
-    // roots flare at the ground
+    for (let y = Math.floor(top / 40) * 40; y < bottom; y += 40) {
+      if (hash2(5, y) > 0.5) { // knot
+        const kx = TRUNK_X - 4 + Math.floor(hash2(6, y) * 8);
+        ctx.fillStyle = '#4a3220';
+        pixelCircle(kx, y + 20, 3, '#4a3220');
+        ctx.fillStyle = '#3a2618';
+        ctx.fillRect(kx - 1, y + 19, 2, 2);
+      }
+    }
+    // roots flare
     const g = toScreen(0, 0);
-    if (g.y < H + 20) {
+    if (g.y < H + 30) {
       ctx.fillStyle = '#6b4a2f';
-      ctx.fillRect(TRUNK_X - 16, g.y + 2, 32, 8);
-      ctx.fillRect(TRUNK_X - 22, g.y + 6, 44, 4);
+      ctx.fillRect(TRUNK_X - hw - 6, g.y + 2, TRUNK_W + 12, 8);
+      ctx.fillRect(TRUNK_X - hw - 12, g.y + 7, TRUNK_W + 24, 4);
+      ctx.fillStyle = '#4a3220';
+      ctx.fillRect(TRUNK_X - hw - 12, g.y + 9, 6, 2);
+      ctx.fillRect(TRUNK_X + hw + 6, g.y + 9, 6, 2);
     }
-    // branches
-    const leaves = leafColor(alt);
+
+    // branches with leaf clusters and the odd berry
     for (let k = 1; k <= maxBranch + 6; k++) {
-      const wy = -k * BRANCH_DY;
-      const p = toScreen(TRUNK_X, wy);
-      if (p.y < -30 || p.y > H + 30) continue;
+      const p = toScreen(TRUNK_X, -k * BRANCH_DY);
+      if (p.y < -40 || p.y > H + 40) continue;
       const side = branchSide(k);
-      const x0 = side > 0 ? TRUNK_X + 8 : TRUNK_X - 8 - BRANCH_LEN;
+      const x0 = side > 0 ? TRUNK_X + hw - 2 : TRUNK_X - hw + 2 - BRANCH_LEN;
+      // branch wood: top light, body, under-shadow, tapered tip
       ctx.fillStyle = '#5a3a20';
-      ctx.fillRect(x0, p.y, BRANCH_LEN, 5);
-      ctx.fillStyle = '#6b4a2f';
+      ctx.fillRect(x0, p.y, BRANCH_LEN, 6);
+      ctx.fillStyle = '#7d5836';
       ctx.fillRect(x0, p.y, BRANCH_LEN, 2);
-      // leaf tuft at the tip
-      const tipX = side > 0 ? x0 + BRANCH_LEN - 10 : x0 - 4;
-      ctx.fillStyle = leaves[2];
-      ctx.fillRect(tipX - 6, p.y - 10, 22, 12);
-      ctx.fillStyle = leaves[0];
-      ctx.fillRect(tipX - 3, p.y - 13, 16, 12);
-      ctx.fillStyle = leaves[1];
-      ctx.fillRect(tipX + 1, p.y - 16, 9, 8);
+      ctx.fillStyle = '#3a2618';
+      ctx.fillRect(x0, p.y + 5, BRANCH_LEN, 1);
+      const tipX = side > 0 ? x0 + BRANCH_LEN - 4 : x0 + 4;
+      ctx.fillStyle = '#5a3a20';
+      ctx.fillRect(tipX - 2, p.y - 2, 5, 3); // upturned nub
+      // foliage: cluster at the tip + tuft at the trunk joint
+      const r1 = 6 + Math.floor(hash2(k, 1) * 2);
+      leafBlob(tipX - side * 6, p.y - 8, r1 + 2, leaves);
+      leafBlob(tipX + side * 3, p.y - 4, r1, leaves);
+      leafBlob(tipX - side * 2, p.y - 13, r1 - 1, leaves);
+      const jointX = side > 0 ? x0 + 4 : x0 + BRANCH_LEN - 4;
+      leafBlob(jointX, p.y - 6, 4, leaves);
+      // berries on some branches (fade at night)
+      if (hash2(k, 8) > 0.55 && darkness(alt) < 0.6) {
+        ctx.fillStyle = '#d84a3a';
+        ctx.fillRect(tipX - side * 9, p.y - 10, 2, 2);
+        ctx.fillRect(tipX + side * 1, p.y - 15, 2, 2);
+        ctx.fillRect(tipX - side * 3, p.y - 5, 2, 2);
+      }
     }
   }
 
@@ -305,7 +415,7 @@ const Scene = (() => {
     if (t >= 1) { branch = jump.to; jump = null; return branchTip(branch); }
     const a = branchTip(jump.from), b = branchTip(jump.to);
     const x = lerp(a.x, b.x, t);
-    const y = lerp(a.y, b.y, t) - Math.sin(t * Math.PI) * 34; // leap arc
+    const y = lerp(a.y, b.y, t) - Math.sin(t * Math.PI) * 34;
     return { x, y, mid: true };
   }
 
@@ -314,7 +424,6 @@ const Scene = (() => {
     const p = toScreen(pos.x, pos.y);
     const scale = 2;
     const map = pos.mid ? SQ_JUMP : SQ_SIT;
-    // faces the trunk: on a right branch look left, on the left look right
     const flip = jump ? branchTip(jump.to).x < branchTip(jump.from).x
                       : branch !== 0 && branchSide(branch) > 0;
     if (sprites && sprites.squirrel) {
@@ -340,10 +449,11 @@ const Scene = (() => {
 
     drawSky(alt);
     drawStars(alt);
-    drawCelestials(alt);
+    drawCelestials(alt, now);
     drawClouds(alt);
+    drawBirds(alt, now);
     drawTree(alt, Math.max(branch, jump ? jump.to : 0));
-    drawGround();
+    drawGround(alt);
     drawSquirrel(now);
     requestAnimationFrame(frame);
   }
@@ -367,7 +477,7 @@ const Scene = (() => {
           sprites[key] = { img, frames: def.frames };
         }
       }
-    } catch { sprites = null; } // no generated art yet — procedural fallback
+    } catch { sprites = null; }
     running = true;
     requestAnimationFrame(frame);
   }
@@ -376,7 +486,7 @@ const Scene = (() => {
 
   function hopTo(k) {
     const from = jump ? jump.to : branch;
-    if (jump) branch = jump.to; // finish the previous hop instantly
+    if (jump) branch = jump.to;
     jump = { from, to: k, t0: performance.now(), dur: 320 };
   }
 
