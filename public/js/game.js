@@ -171,11 +171,9 @@
   }
 
   function showBetween() {
-    const next = cats[catIdx + 1];
     $('between-title').innerHTML = `${icon('hourglass')} Time's up!`;
-    $('between-msg').innerHTML =
-      `You named ${breakdown[catIdx]} ${cats[catIdx].title.toLowerCase()}. ` +
-      `Next up: ${catIcon(next)} ${next.title}`;
+    $('between-msg').textContent =
+      `You named ${breakdown[catIdx]} ${cats[catIdx].title.toLowerCase()}.`;
     show('screen-between');
   }
 
