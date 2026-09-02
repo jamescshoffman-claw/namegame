@@ -554,56 +554,88 @@ const Scene = (() => {
     }
   }
 
-  // The red planet: from branch ~50 up, rocky mesas drift past behind the
-  // tree forever, with aliens pacing and munching space fruit on top.
-  const MESA_STEP = 5.5;
+  // The red planet belt: from branch ~50 up, round mini planets drift past
+  // behind the tree forever, each with aliens living on (and circling) it.
+  const PLANET_STEP = 5.5;
   function drawRedPlanet(alt, now) {
     if (alt < 44) return;
-    const kMin = Math.max(0, Math.floor((alt - PLANET_ALT - 8) / MESA_STEP));
-    const kMax = Math.max(0, Math.ceil((alt - PLANET_ALT + 7) / MESA_STEP));
+    const kMin = Math.max(0, Math.floor((alt - PLANET_ALT - 8) / PLANET_STEP));
+    const kMax = Math.max(0, Math.ceil((alt - PLANET_ALT + 7) / PLANET_STEP));
     for (let k = kMin; k <= kMax; k++) {
-      const p = toScreen(0, -(PLANET_ALT + k * MESA_STEP) * BRANCH_DY);
-      if (p.y < -60 || p.y > H + 170) continue;
+      const p = toScreen(0, -(PLANET_ALT + k * PLANET_STEP) * BRANCH_DY);
+      if (p.y < -90 || p.y > H + 90) continue;
       const side = k % 2 ? 1 : -1;
-      const w = Math.round(140 + hash2(k, 31) * 70);
-      drawMesa(side > 0 ? W - w : 0, w, Math.round(p.y), k, now);
+      const r = Math.round(24 + hash2(k, 31) * 14);
+      const cx = side > 0
+        ? 250 + Math.floor(hash2(k, 3) * 30)
+        : 40 + Math.floor(hash2(k, 3) * 30);
+      drawMiniPlanet(cx, Math.round(p.y), r, k);
+      drawPlanetAliens(cx, Math.round(p.y), r, k, now);
     }
   }
 
-  function drawMesa(x0, w, ty, k, now) {
+  // A round pixel planet: outlined disc filled row-by-row with the martian
+  // ground texture (cylindrical sampling), lit from the top-left, cratered.
+  function drawMiniPlanet(cx, cy, r, k) {
+    pixelCircle(cx, cy, r, '#2a0f0c');     // outline ring
     const g = spr('redground');
     if (g) {
       const f = g.frames[0];
-      const sx = Math.floor(hash2(k, 7) * (f.w - w));
-      ctx.drawImage(g.img, f.x + sx, f.y, w, f.h, x0, ty - 16, w, f.h);
-      ctx.fillStyle = '#2a0f0c';           // tapered underside
-      ctx.fillRect(x0 + 8, ty - 16 + f.h, w - 16, 3);
-      ctx.fillRect(x0 + 24, ty - 13 + f.h, w - 48, 3);
+      const sx = f.x + Math.floor(hash2(k, 7) * (f.w - 2 * r - 2));
+      for (let y = -(r - 1); y <= r - 1; y++) {
+        const span = Math.floor(Math.sqrt((r - 1) * (r - 1) - y * y));
+        if (span <= 0) continue;
+        const rowY = f.y + 22 + ((y + r) * 2) % (f.h - 30);
+        ctx.drawImage(g.img, sx + (r - span), rowY, span * 2, 1,
+          cx - span, cy + y, span * 2, 1);
+      }
     } else {
-      ctx.fillStyle = '#8a3a26';
-      ctx.fillRect(x0, ty, w, 70);
-      ctx.fillStyle = '#b0562e';
-      ctx.fillRect(x0, ty, w, 6);
+      pixelCircle(cx, cy, r - 1, '#8a3a26');
     }
-    // inhabitants (hash-chosen, so each mesa keeps its own residents)
-    const r = hash2(k, 12);
-    if (r > 0.3) {
-      const ex = x0 + 20 + Math.floor(hash2(k, 5) * (w - 40));
+    for (let c = 0; c < 3; c++) {          // craters
+      const a = hash2(k, 40 + c) * Math.PI * 2;
+      const d = hash2(k, 50 + c) * r * 0.55;
+      pixelCircle(Math.round(cx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d),
+        1 + Math.floor(hash2(k, 60 + c) * 2), '#6e2a1c');
+    }
+    ctx.globalAlpha = 0.3;                 // sunlit side
+    pixelCircle(cx - Math.ceil(r / 3), cy - Math.ceil(r / 3),
+      Math.max(2, r - Math.ceil(r / 2.2)), '#ffb073');
+    ctx.globalAlpha = 1;
+  }
+
+  // Residents: an eater parked at its own spot on the surface, and a walker
+  // endlessly circling the planet, both rotated so their feet point at the
+  // core (hash-chosen, so each planet keeps its population).
+  function drawPlanetAliens(cx, cy, r, k, now) {
+    const roll = hash2(k, 12);
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (roll > 0.3) {
+      const s = spr('alieneat');
       const bob = Math.floor(now / 350 + k) % 2;
-      if (!drawSpr('alieneat', ex - 8, ty - 18 + bob, { flip: hash2(k, 9) > 0.5 })) {
-        drawAlienBlob(ex, ty - 2);
+      ctx.save();
+      ctx.rotate(hash2(k, 5) * Math.PI * 2);
+      if (s) {
+        const f = s.frames[0];
+        ctx.drawImage(s.img, f.x, f.y, f.w, f.h, -f.w >> 1, -r - f.h + 3 + bob, f.w, f.h);
+      } else {
+        drawAlienBlob(0, -r + 6);
       }
+      ctx.restore();
     }
-    if (r < 0.75) {
-      const a = x0 + 12, span = w - 24;
-      const t = (now / (30 + (k % 3) * 9)) % (span * 2);
-      const fwd = t < span;
-      const x = Math.round(a + (fwd ? t : span * 2 - t));
+    if (roll < 0.75) {
+      const s = spr('alienwalk');
       const step = Math.floor(now / 180 + k) % 2;
-      if (!drawSpr('alienwalk', x - 8, ty - 20 - step, { flip: !fwd })) {
-        drawAlienBlob(x, ty - 2);
+      ctx.rotate(now * (0.0005 + (k % 3) * 0.0002) + k * 2.1);
+      if (s) {
+        const f = s.frames[0];
+        ctx.drawImage(s.img, f.x, f.y, f.w, f.h, -f.w >> 1, -r - f.h + 3 - step, f.w, f.h);
+      } else {
+        drawAlienBlob(0, -r + 6);
       }
     }
+    ctx.restore();
   }
 
   // The stump the squirrel starts on: its top surface meets the ground

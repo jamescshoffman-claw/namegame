@@ -339,6 +339,15 @@
     document.addEventListener('keydown', e => {
       if (e.key.length === 1) secret = (secret + e.key.toLowerCase()).slice(-3);
       if (secret === 'try' && state !== 'playing') { secret = ''; devRestart(); }
+      // Dev: Home climbs one branch as if a correct answer landed
+      if (e.key === 'Home' && state === 'playing') {
+        score++;
+        breakdown[catIdx]++;
+        extendTimer();
+        saveProgress();
+        Scene.hopTo(score);
+        setScore(score);
+      }
     });
     // Tapping Go must not steal focus from the input — losing focus would
     // dismiss the mobile keyboard between every answer.
