@@ -216,8 +216,10 @@
     show('screen-answers');
   }
 
+  // No URL on purpose: a link makes Messenger and friends unfurl a bulky
+  // preview card in group chats.
   function shareText(sc, bd) {
-    return `🐿️ NameGame Day ${day + 1}\n🌳 ${bd.join(' · ')} = ${sc} branches\nhttps://namegame.fun`;
+    return `🐿️ NameGame Day ${day + 1}\n🌳 ${bd.join(' · ')} = ${sc} branches`;
   }
 
   function renderOver(sc, bd, finished) {
