@@ -20,6 +20,7 @@ const Scene = (() => {
   let running = false;
   let viewFrac = 1;              // fraction of the canvas not covered by the keyboard
   let anchor = H * 0.62;         // screen y the camera pins cameraY to (eased)
+  let animal = 'squirrel';       // which skin the climber wears
 
   // ---------- deterministic hash noise (stable placement of everything) ----------
   function hash2(x, y) {
@@ -764,8 +765,8 @@ const Scene = (() => {
     const map = pos.mid ? SQ_JUMP : SQ_SIT;
     const flip = jump ? branchTip(jump.to).x < branchTip(jump.from).x
                       : branch !== 0 && branchSide(branch) > 0;
-    if (sprites && sprites.squirrel) {
-      const s = sprites.squirrel;
+    if (sprites && (sprites[animal] || sprites.squirrel)) {
+      const s = sprites[animal] || sprites.squirrel;
       const fr = s.frames[pos.mid ? 1 : 0];
       const img = sprImage(s, darkness(-cameraY / BRANCH_DY));
       ctx.save();
@@ -844,5 +845,7 @@ const Scene = (() => {
     viewFrac = Math.max(0.35, Math.min(1, f));
   }
 
-  return { init, reset, hopTo, setViewFraction };
+  function setAnimal(name) { animal = name || 'squirrel'; }
+
+  return { init, reset, hopTo, setViewFraction, setAnimal };
 })();

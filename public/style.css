@@ -241,6 +241,21 @@ button.big.secondary { background: #f5e3c3; color: #5a3a20; margin-top: 10px; }
 #over-score { font-size: 56px; font-weight: 900; color: #e0562c; margin-top: 6px; }
 .branches-label { font-size: 13px; font-weight: 700; color: #6b4a2f; margin-bottom: 12px; }
 #over-breakdown { display: grid; gap: 4px; font-size: 15px; }
-#over-best { margin-top: 10px; font-size: 13px; font-weight: 700; color: #b5622d; }
+#over-stats { margin-top: 10px; font-size: 13px; font-weight: 800; color: #3a7d2e; min-height: 16px; }
+#over-best { margin-top: 6px; font-size: 13px; font-weight: 700; color: #b5622d; }
+#streak-label { margin-top: 8px; font-size: 13px; font-weight: 800; color: #e0562c; }
+#animal-picker { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+.skin {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 10px;
+  border: 2px solid #e0cba6; border-radius: 8px;
+  background: #f5e3c3;
+  cursor: pointer;
+  font-family: inherit;
+}
+.skin--sel { border-color: #e0562c; background: #ffe9c4; }
+.skin--locked { opacity: 0.45; cursor: default; }
+.skin__img { width: 32px; height: 32px; image-rendering: pixelated; }
+.skin__need { font-size: 10px; font-weight: 700; color: #6b4a2f; }
 #over-note { margin-top: 6px; font-size: 12px; color: #997a5a; }
 #countdown { margin-top: 12px; font-size: 13px; font-weight: 700; color: #6b4a2f; font-variant-numeric: tabular-nums; }

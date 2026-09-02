@@ -53,6 +53,13 @@ python tools/art/cut-aliens.py
 node tools/art/gen-asset.mjs heaven tools/art/prompts/heaven.txt 1024x1024 --ref tools/art/out/squirrel.png
 python tools/art/cut-heaven.py
 
+# Animal skins (streak unlocks; same 2x2 pose layout as the squirrel).
+# cut-skin.py emits the sheet + icons/skin-<name>.png for the picker.
+node tools/art/gen-asset.mjs rabbit tools/art/prompts/rabbit.txt --transparent
+python tools/art/cut-skin.py rabbit
+node tools/art/gen-asset.mjs fox tools/art/prompts/fox.txt --transparent
+python tools/art/cut-skin.py fox
+
 # UI + category icons (replace every emoji in the HTML/game UI; game.js
 # maps category emoji -> icon name in CAT_ICONS)
 node tools/art/gen-asset.mjs icons tools/art/prompts/icons.txt 1024x1024 --ref tools/art/out/squirrel.png

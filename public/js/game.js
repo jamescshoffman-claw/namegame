@@ -54,6 +54,105 @@
     save({ day, played: true, finished: false, score, breakdown, named, catIdx, deadline, state });
   }
 
+  // ---------- supabase (shared project; publishable key + RLS, see
+  // supabase/namegame.sql) ----------
+  const SB_URL = 'https://sofrzvspjrvtovksjdvi.supabase.co/rest/v1';
+  const SB_KEY = 'sb_publishable_Zh07DXhCr6jAcy1ZDAiviQ_XPFjings';
+  const SB_HEADERS = {
+    apikey: SB_KEY,
+    Authorization: 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json',
+  };
+
+  function clientId() {
+    let cid = localStorage.getItem('namegame-cid');
+    if (!cid) {
+      cid = crypto.randomUUID();
+      localStorage.setItem('namegame-cid', cid);
+    }
+    return cid;
+  }
+
+  async function submitRun(sc, bd) {
+    await fetch(SB_URL + '/namegame_runs?on_conflict=day,client_id', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ day, client_id: clientId(), score: sc, breakdown: bd }),
+    });
+  }
+
+  async function fetchStats(sc) {
+    const res = await fetch(SB_URL + '/rpc/namegame_stats', {
+      method: 'POST',
+      headers: SB_HEADERS,
+      body: JSON.stringify({ p_day: day, p_score: sc }),
+    });
+    if (!res.ok) throw new Error('stats ' + res.status);
+    return res.json();
+  }
+
+  // ---------- streak (browser-based: did this device play the previous days)
+  function updateStreak() {
+    const st = load().streak || { last: -2, n: 0 };
+    if (st.last !== day) {
+      st.n = st.last === day - 1 ? st.n + 1 : 1;
+      st.last = day;
+      save({ streak: st });
+    }
+    return st.n;
+  }
+  function currentStreak() {
+    const st = load().streak;
+    if (!st) return 0;
+    return (st.last === day || st.last === day - 1) ? st.n : 0;
+  }
+
+  // ---------- animal skins (streak unlocks) ----------
+  const ANIMALS = [
+    { key: 'squirrel', label: 'Squirrel', icon: 'assets/favicon.png', need: 0 },
+    { key: 'rabbit', label: 'Rabbit', icon: 'assets/icons/skin-rabbit.png', need: 2 },
+    { key: 'fox', label: 'Fox', icon: 'assets/icons/skin-fox.png', need: 5 },
+  ];
+  function chosenAnimal() { return load().animal || 'squirrel'; }
+
+  function renderPicker() {
+    const streak = currentStreak();
+    $('streak-label').textContent = streak >= 2 ? `${streak}-day streak!` : '';
+    $('animal-picker').innerHTML = ANIMALS.map(a => {
+      const locked = streak < a.need;
+      const sel = chosenAnimal() === a.key;
+      return `<button class="skin${sel ? ' skin--sel' : ''}${locked ? ' skin--locked' : ''}"` +
+        ` data-animal="${a.key}"${locked ? ' disabled' : ''}>` +
+        `<img class="skin__img" src="${a.icon}" alt="${a.label}">` +
+        `<span class="skin__need">${locked ? a.need + '-day streak' : a.label}</span>` +
+        `</button>`;
+    }).join('');
+    for (const btn of $('animal-picker').querySelectorAll('button:not([disabled])')) {
+      btn.addEventListener('click', () => {
+        save({ animal: btn.dataset.animal });
+        Scene.setAnimal(btn.dataset.animal);
+        renderPicker();
+      });
+    }
+  }
+
+  async function renderStats(sc) {
+    const el = $('over-stats');
+    el.textContent = '';
+    if (practice) return;
+    try {
+      await submitRun(sc, breakdown);
+      const s = await fetchStats(sc);
+      if (!s || !s.players) return;
+      if (s.players === 1) {
+        el.textContent = 'First climber of the day!';
+      } else {
+        const beat = Math.round((s.below / (s.players - 1)) * 100);
+        el.textContent = `You climbed higher than ${beat}% of today's ${s.players} climbers`;
+      }
+    } catch { /* offline or table missing — just skip the stats line */ }
+  }
+
   // ---------- screens ----------
   function show(screen) {
     for (const id of ['screen-start', 'screen-between', 'screen-over', 'screen-answers']) {
@@ -201,6 +300,7 @@
     const best = !practice && (!s.best || score > s.best.score)
       ? { score, day } : s.best;
     save({ day, played: true, finished, score, breakdown, named, best });
+    if (!practice) updateStreak();
     renderOver(score, breakdown, finished);
   }
 
@@ -237,6 +337,8 @@
       ? `Best climb: ${s.best.score} (Day ${s.best.day + 1})` : '';
     $('over-note').textContent = practice ? 'Practice run — nothing saved.'
       : finished ? '' : 'This run ended early (page was closed mid-climb).';
+    renderStats(sc);
+    renderPicker();
     show('screen-over');
     startCountdown();
   }
@@ -262,6 +364,7 @@
   async function boot() {
     await Scene.init($('scene'));
     Scene.reset();
+    Scene.setAnimal(chosenAnimal());
     setScore(0);
     $('day-label').textContent = `Day ${day + 1}` + (practice ? ' · practice' : '');
 
