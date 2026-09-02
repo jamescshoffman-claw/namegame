@@ -6,7 +6,7 @@
 // never writes storage.
 (() => {
   const START_MS = 10000;   // first clock of each category
-  const RESET_MS = 7000;    // the clock after every correct answer
+  const RESET_MS = 10000;   // the clock after every correct answer
   const $ = id => document.getElementById(id);
 
   // Pixel-art icons replace emoji everywhere in the UI (share text keeps
