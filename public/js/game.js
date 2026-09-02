@@ -6,7 +6,15 @@
 // never writes storage.
 (() => {
   const START_MS = 10000;   // first clock of each category
-  const RESET_MS = 10000;   // the clock after every correct answer
+  // The reset clock tightens as the category's answer count grows —
+  // 10s, then 9s after 10 answers, 8s after 15, 7s after 20. Each new
+  // category starts the ladder over.
+  function resetMs(count) {
+    if (count >= 20) return 7000;
+    if (count >= 15) return 8000;
+    if (count >= 10) return 9000;
+    return 10000;
+  }
   const $ = id => document.getElementById(id);
 
   // Pixel-art icons replace emoji everywhere in the UI (share text keeps
@@ -171,8 +179,8 @@
     tickTimer();
   }
   function extendTimer() {
-    allot = RESET_MS;
-    deadline = Date.now() + RESET_MS; // shorter bursts once you're rolling
+    allot = resetMs(breakdown[catIdx]);
+    deadline = Date.now() + allot;
   }
   function tickTimer() {
     const left = deadline - Date.now();
@@ -206,6 +214,7 @@
     $('answer').focus();
     setFeedback('');
     if (resumeDeadline) {
+      allot = resetMs(breakdown[catIdx]); // restore the bar's current scale
       deadline = resumeDeadline;
       cancelAnimationFrame(timerRAF);
       tickTimer();
