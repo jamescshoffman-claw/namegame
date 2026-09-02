@@ -717,8 +717,7 @@ const GameData = (() => {
   const EPOCH = new Date(2026, 8, 1); // Sep 1, 2026 (months are 0-indexed)
   const SCHEDULE = [
     ['fruits', 'fastfood', 'countriesS'],
-    ['fruits', 'fastfood', 'countriesS'], // day 2 repeats day 1 (friend demo)
-    ['mammals', 'colors', 'sports'],      // day 3 — the friends' second day
+    ['mammals', 'sports', 'colors'],      // day 2 — the friends' second day
     ['vegetables', 'carbrands', 'usstates'],
     ['animals', 'pizzatoppings', 'colors'],
     ['sports', 'icecreamflavors', 'dogbreeds'],
