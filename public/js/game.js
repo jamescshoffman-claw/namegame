@@ -23,6 +23,9 @@
     '🍎': 'apple', '🍔': 'burger', '🌍': 'globe', '🥕': 'carrot',
     '🚗': 'car', '🗽': 'flag', '🦁': 'lion', '🍕': 'pizza',
     '🎨': 'palette', '⚽': 'ball', '🍦': 'icecream', '🐕': 'dog',
+    '🗣': 'speech', '🎬': 'clapper', '🎸': 'guitar', '⚡': 'bolt',
+    '🌳': 'tree', '🏯': 'pagoda', '🏎': 'kart', '💎': 'gem',
+    '🧸': 'toy', '🎮': 'controller', '🏢': 'building',
   };
   function icon(name, dir = 'assets/icons/') {
     return `<img class="icon" src="${dir}${name}.png" alt="">`;

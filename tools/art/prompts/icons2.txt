@@ -1,0 +1,18 @@
+16-bit pixel art icon set, Stardew Valley style, crisp chunky pixels, no
+anti-aliasing, clean dark outlines, bright readable colors. A 4x3 grid of 12
+small game icons, each centered in its own cell with generous empty margin,
+nothing touching cell edges, plain background, no text, no grid lines.
+Each icon must read clearly even when tiny:
+
+row 1: a white speech bubble with three dots; a black-and-white film
+clapperboard; an acoustic guitar; a yellow lightning bolt.
+
+row 2: a leafy green tree with brown trunk; a red multi-tiered pagoda
+tower; a small red go-kart seen from the side; a sparkling blue cut
+diamond gem.
+
+row 3: a brown teddy bear sitting; a grey video game controller with
+colored buttons; a tall office building with lit windows; a golden trophy
+cup.
+
+Consistent warm palette across all 12 icons, at most 24 colors total.
