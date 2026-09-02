@@ -262,7 +262,21 @@
       state = 'over';
       renderOver(score, breakdown, (load().finished !== false));
     });
-    $('btn-share').addEventListener('click', async () => {
+    // Easter egg: hold Share for 2 seconds to retry today's climb
+    let shareHoldTimer = null, shareHeld = false;
+    const shareBtn = $('btn-share');
+    shareBtn.addEventListener('pointerdown', () => {
+      shareHeld = false;
+      clearTimeout(shareHoldTimer);
+      shareHoldTimer = setTimeout(() => { shareHeld = true; devRestart(); }, 2000);
+    });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) {
+      shareBtn.addEventListener(ev, () => clearTimeout(shareHoldTimer));
+    }
+    shareBtn.addEventListener('contextmenu', e => e.preventDefault());
+
+    shareBtn.addEventListener('click', async () => {
+      if (shareHeld) { shareHeld = false; return; } // long-press was the reset
       const text = shareText(score, breakdown);
       // Native share sheet only on touch devices — on desktop it's clunky
       // (and macOS's sheet can hang the page); copy to clipboard instead.

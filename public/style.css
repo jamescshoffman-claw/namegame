@@ -183,6 +183,10 @@ html, body {
 }
 .rules { margin-top: 10px; font-size: 13px; color: #6b4a2f; line-height: 1.5; }
 button.big {
+  /* long-pressable (Share easter egg) — no iOS callout/selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   margin-top: 16px;
   width: 100%;
   font-size: 18px;
