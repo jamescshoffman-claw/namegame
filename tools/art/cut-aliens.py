@@ -8,7 +8,7 @@ alien, eating alien) into game sprites, plus:
 """
 import os
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from cutlib import ASSETS, OUT, grid_cells, merge_manifest, save_sprite, scale_to, to_alpha
 
@@ -33,6 +33,21 @@ def alien_ground():
     h = h.point(lambda x: (x + 150) % 256)   # green grass -> purple, dirt -> teal
     s = s.point(lambda x: min(255, int(x * 1.15)))
     out = Image.merge("HSV", (h, s, v)).convert("RGBA")
+    out.putalpha(a)
+    return out
+
+
+def red_ground():
+    """Martian rock: the ground strip's luminance colorized dark-red to
+    dusty orange — the recurring terrain of the red planet above branch 50."""
+    src = os.path.join(ASSETS, "ground.png")
+    if not os.path.exists(src):
+        return None
+    img = Image.open(src).convert("RGBA")
+    a = img.getchannel("A")
+    gray = ImageOps.autocontrast(img.convert("L"))
+    out = ImageOps.colorize(gray, black=(52, 14, 12), white=(228, 122, 66),
+                            mid=(150, 58, 34)).convert("RGBA")
     out.putalpha(a)
     return out
 
@@ -67,6 +82,9 @@ def main():
     ag = alien_ground()
     if ag is not None:
         entries["alienground"] = save_sprite("alienground", ag)
+    rg = red_ground()
+    if rg is not None:
+        entries["redground"] = save_sprite("redground", rg)
 
     icon_dir = os.path.join(ASSETS, "icons")
     os.makedirs(icon_dir, exist_ok=True)

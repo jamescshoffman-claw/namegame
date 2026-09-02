@@ -38,6 +38,9 @@ const Scene = (() => {
     [22, [ 14,  26,  58], [ 36,  53, 107]],  // night
     [30, [  6,  13,  36], [ 14,  26,  58]],  // deep night
     [38, [  3,   3,   8], [ 10,  10,  24]],  // space
+    [46, [ 10,   4,   8], [ 34,  12,  16]],  // a red glow ahead...
+    [53, [ 52,  16,  18], [110,  36,  26]],  // entering the atmosphere
+    [60, [ 96,  30,  22], [176,  74,  44]],  // the red planet's dusty sky
   ];
 
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -61,7 +64,9 @@ const Scene = (() => {
     if (alt < 14) return 0;
     if (alt < 22) return (alt - 14) / 8 * 0.8;
     if (alt < 38) return 0.8 + (alt - 22) / 16 * 0.2;
-    return 1;
+    if (alt < 46) return 1;
+    if (alt < 56) return 1 - (alt - 46) / 10 * 0.6;  // red daylight returns
+    return 0.4;
   }
 
   // ---------- squirrel pixel art (placeholder until generated art lands) ----------
@@ -210,7 +215,8 @@ const Scene = (() => {
   }
 
   function drawStars(alt) {
-    const d = darkness(alt);
+    // stars wash out as the red planet's atmosphere thickens
+    const d = darkness(alt) * Math.max(0, Math.min(1, (56 - alt) / 8));
     if (d <= 0.05) return;
     const par = 0.35;
     const offY = cameraY * par;
@@ -521,14 +527,17 @@ const Scene = (() => {
     ctx.fillRect(x + 1, y - 6, 2, 2);
   }
 
-  // Flying saucers cruising through the space band
+  // Flying saucers cruising everywhere above the night — the band repeats
+  // forever so the sky stays busy however high the climb goes
   function drawUfos(alt, now) {
     if (alt < 33) return;
-    for (let i = 0; i < 7; i++) {
+    const kMin = Math.max(0, Math.floor((alt - 43) / 4.6));
+    const kMax = Math.ceil((alt - 30) / 4.6);
+    for (let i = kMin; i <= kMax; i++) {
       const p = toScreen(0, -(37 + i * 4.6) * BRANCH_DY - 14);
       if (p.y < -30 || p.y > H + 30) continue;
       const span = W + 90;
-      const t = (now / (28 + i * 7) + i * 431) % (span * 2);
+      const t = (now / (28 + (i % 5) * 7) + i * 431) % (span * 2);
       const fwd = t < span;
       const x = Math.round((fwd ? t : span * 2 - t) - 45);
       const y = Math.round(p.y + Math.sin(now / 500 + i * 1.7) * 4);
@@ -545,44 +554,54 @@ const Scene = (() => {
     }
   }
 
-  // The alien planet: a floating island of recolored ground the tree passes
-  // through, with aliens pacing and munching space fruit on its surface.
-  function drawAlienPlanet(alt, now) {
-    const surf = toScreen(0, -PLANET_ALT * BRANCH_DY + 26);
-    if (surf.y > H + 180 || surf.y < -80) return;
-    const gy = surf.y;
-    const gs = spr('alienground');
-    if (gs) {
-      const f = gs.frames[0];
-      drawSpr('alienground', 0, gy - 16);
-      ctx.fillStyle = '#141c38';           // tapered floating-island underside
-      ctx.fillRect(0, gy - 16 + f.h, W, 3);
-      ctx.fillRect(16, gy - 13 + f.h, W - 32, 3);
-      ctx.fillRect(48, gy - 10 + f.h, W - 96, 3);
-    } else {
-      ctx.fillStyle = '#7a4fd0';
-      ctx.fillRect(0, gy, W, 10);
-      ctx.fillStyle = '#24406e';
-      ctx.fillRect(0, gy + 10, W, 90);
+  // The red planet: from branch ~50 up, rocky mesas drift past behind the
+  // tree forever, with aliens pacing and munching space fruit on top.
+  const MESA_STEP = 5.5;
+  function drawRedPlanet(alt, now) {
+    if (alt < 44) return;
+    const kMin = Math.max(0, Math.floor((alt - PLANET_ALT - 8) / MESA_STEP));
+    const kMax = Math.max(0, Math.ceil((alt - PLANET_ALT + 7) / MESA_STEP));
+    for (let k = kMin; k <= kMax; k++) {
+      const p = toScreen(0, -(PLANET_ALT + k * MESA_STEP) * BRANCH_DY);
+      if (p.y < -60 || p.y > H + 170) continue;
+      const side = k % 2 ? 1 : -1;
+      const w = Math.round(140 + hash2(k, 31) * 70);
+      drawMesa(side > 0 ? W - w : 0, w, Math.round(p.y), k, now);
     }
-    // two eaters bobbing over their fruit, clear of the trunk
-    for (let i = 0; i < 2; i++) {
-      const x = [56, 268][i];
-      const bob = Math.floor(now / 350 + i) % 2;
-      if (!drawSpr('alieneat', x - 8, gy - 18 + bob, { flip: i === 1 })) {
-        drawAlienBlob(x, gy - 2);
+  }
+
+  function drawMesa(x0, w, ty, k, now) {
+    const g = spr('redground');
+    if (g) {
+      const f = g.frames[0];
+      const sx = Math.floor(hash2(k, 7) * (f.w - w));
+      ctx.drawImage(g.img, f.x + sx, f.y, w, f.h, x0, ty - 16, w, f.h);
+      ctx.fillStyle = '#2a0f0c';           // tapered underside
+      ctx.fillRect(x0 + 8, ty - 16 + f.h, w - 16, 3);
+      ctx.fillRect(x0 + 24, ty - 13 + f.h, w - 48, 3);
+    } else {
+      ctx.fillStyle = '#8a3a26';
+      ctx.fillRect(x0, ty, w, 70);
+      ctx.fillStyle = '#b0562e';
+      ctx.fillRect(x0, ty, w, 6);
+    }
+    // inhabitants (hash-chosen, so each mesa keeps its own residents)
+    const r = hash2(k, 12);
+    if (r > 0.3) {
+      const ex = x0 + 20 + Math.floor(hash2(k, 5) * (w - 40));
+      const bob = Math.floor(now / 350 + k) % 2;
+      if (!drawSpr('alieneat', ex - 8, ty - 18 + bob, { flip: hash2(k, 9) > 0.5 })) {
+        drawAlienBlob(ex, ty - 2);
       }
     }
-    // two walkers pacing their own stretch of the surface
-    for (let i = 0; i < 2; i++) {
-      const [a, b] = [[24, 118], [202, 296]][i];
-      const span = b - a;
-      const t = (now / (34 + i * 11)) % (span * 2);
+    if (r < 0.75) {
+      const a = x0 + 12, span = w - 24;
+      const t = (now / (30 + (k % 3) * 9)) % (span * 2);
       const fwd = t < span;
       const x = Math.round(a + (fwd ? t : span * 2 - t));
-      const step = Math.floor(now / 180 + i) % 2;
-      if (!drawSpr('alienwalk', x - 8, gy - 20 - step, { flip: !fwd })) {
-        drawAlienBlob(x, gy - 2);
+      const step = Math.floor(now / 180 + k) % 2;
+      if (!drawSpr('alienwalk', x - 8, ty - 20 - step, { flip: !fwd })) {
+        drawAlienBlob(x, ty - 2);
       }
     }
   }
@@ -660,11 +679,11 @@ const Scene = (() => {
     drawClouds(alt);
     drawBirds(alt, now);
     drawUfos(alt, now);
+    drawRedPlanet(alt, now);
     drawTree(alt, Math.max(branch, jump ? jump.to : 0));
     drawGround(alt);
     drawTreeBase(alt);
     drawStump(alt);
-    drawAlienPlanet(alt, now);
     drawSquirrel(now);
     requestAnimationFrame(frame);
   }
