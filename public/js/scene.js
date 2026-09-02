@@ -41,6 +41,8 @@ const Scene = (() => {
     [46, [ 10,   4,   8], [ 34,  12,  16]],  // a red glow ahead...
     [53, [ 52,  16,  18], [110,  36,  26]],  // entering the atmosphere
     [60, [ 96,  30,  22], [176,  74,  44]],  // the red planet's dusty sky
+    [66, [168, 112,  76], [226, 174, 124]],  // golden haze above the dust
+    [73, [148, 186, 232], [250, 244, 226]],  // heaven
   ];
 
   function lerp(a, b, t) { return a + (b - a) * t; }
@@ -66,7 +68,9 @@ const Scene = (() => {
     if (alt < 38) return 0.8 + (alt - 22) / 16 * 0.2;
     if (alt < 46) return 1;
     if (alt < 56) return 1 - (alt - 46) / 10 * 0.6;  // red daylight returns
-    return 0.4;
+    if (alt < 62) return 0.4;
+    if (alt < 70) return 0.4 * (1 - (alt - 62) / 8); // heaven is pure light
+    return 0;
   }
 
   // ---------- squirrel pixel art (placeholder until generated art lands) ----------
@@ -532,7 +536,8 @@ const Scene = (() => {
   function drawUfos(alt, now) {
     if (alt < 33) return;
     const kMin = Math.max(0, Math.floor((alt - 43) / 4.6));
-    const kMax = Math.ceil((alt - 30) / 4.6);
+    // saucers stay below the golden haze — heaven has its own fliers
+    const kMax = Math.min(Math.floor((66 - 37) / 4.6), Math.ceil((alt - 30) / 4.6));
     for (let i = kMin; i <= kMax; i++) {
       const p = toScreen(0, -(37 + i * 4.6) * BRANCH_DY - 14);
       if (p.y < -30 || p.y > H + 30) continue;
@@ -560,7 +565,9 @@ const Scene = (() => {
   function drawRedPlanet(alt, now) {
     if (alt < 44) return;
     const kMin = Math.max(0, Math.floor((alt - PLANET_ALT - 8) / PLANET_STEP));
-    const kMax = Math.max(0, Math.ceil((alt - PLANET_ALT + 7) / PLANET_STEP));
+    // the belt ends where the golden haze begins (~branch 64)
+    const kMax = Math.min(Math.floor((64 - PLANET_ALT) / PLANET_STEP),
+      Math.ceil((alt - PLANET_ALT + 7) / PLANET_STEP));
     for (let k = kMin; k <= kMax; k++) {
       const p = toScreen(0, -(PLANET_ALT + k * PLANET_STEP) * BRANCH_DY);
       if (p.y < -90 || p.y > H + 90) continue;
@@ -638,6 +645,85 @@ const Scene = (() => {
     ctx.restore();
   }
 
+  // ---------- heaven ----------
+  const HEAVEN_ALT = 70;
+
+  function drawCloudBank(cx, y, halfW) {
+    for (let i = -2; i <= 2; i++) {
+      const r = i === 0 ? 13 : (Math.abs(i) === 1 ? 10 : 7);
+      const bx = cx + Math.round(i * (halfW / 2));
+      pixelCircle(bx, y + Math.abs(i) * 2 + 2, r, '#e7ddc8');
+      pixelCircle(bx - 2, y + Math.abs(i) * 2, Math.max(1, r - 2), '#fffdf4');
+    }
+  }
+
+  // Cherubs flapping across the heaven band, forever upward
+  function drawAngels(alt, now) {
+    if (alt < 62) return;
+    const kMin = Math.max(0, Math.floor((alt - 72) / 4.2));
+    const kMax = Math.ceil((alt - 60) / 4.2);
+    for (let i = kMin; i <= kMax; i++) {
+      const p = toScreen(0, -(65 + i * 4.2) * BRANCH_DY - 10);
+      if (p.y < -30 || p.y > H + 30) continue;
+      const span = W + 80;
+      const t = (now / (30 + (i % 4) * 8) + i * 377) % (span * 2);
+      const fwd = t < span;
+      const x = Math.round((fwd ? t : span * 2 - t) - 40);
+      const y = Math.round(p.y + Math.sin(now / 420 + i * 1.3) * 5);
+      const fr = Math.floor(now / 220 + i) % 2;
+      if (!drawSpr('angel', x - 15, y - 14, { frame: fr, flip: !fwd })) {
+        ctx.fillStyle = '#fffdf4';
+        ctx.fillRect(x - 3, y - 4, 7, 9);
+        ctx.fillRect(x - 9, y - 2 + (fr ? 2 : 0), 6, 3);
+        ctx.fillRect(x + 4, y - 2 + (fr ? 2 : 0), 6, 3);
+        ctx.fillStyle = '#ffd75e';
+        ctx.fillRect(x - 2, y - 7, 5, 1);
+      }
+    }
+  }
+
+  // The pearly gates greet the climb at branch 70; above them, Greek
+  // temples on cloud banks drift past forever.
+  function drawHeaven(alt, now) {
+    if (alt < 62) return;
+    const gp = toScreen(TRUNK_X, -HEAVEN_ALT * BRANCH_DY);
+    if (gp.y > -120 && gp.y < H + 120) {
+      const s = spr('gates');
+      if (s) {
+        const f = s.frames[0];
+        drawCloudBank(TRUNK_X, Math.round(gp.y) + 16, 96);
+        drawSpr('gates', TRUNK_X - f.w / 2, Math.round(gp.y) - f.h + 14);
+      } else {
+        ctx.fillStyle = '#e7ddc8';
+        ctx.fillRect(TRUNK_X - 46, gp.y - 60, 10, 74);
+        ctx.fillRect(TRUNK_X + 36, gp.y - 60, 10, 74);
+        ctx.fillStyle = '#e8bd50';
+        ctx.fillRect(TRUNK_X - 34, gp.y - 48, 68, 62);
+      }
+    }
+    const kMin = Math.max(1, Math.floor((alt - HEAVEN_ALT - 8) / 5.5));
+    const kMax = Math.max(1, Math.ceil((alt - HEAVEN_ALT + 7) / 5.5));
+    for (let k = kMin; k <= kMax; k++) {
+      const p = toScreen(0, -(HEAVEN_ALT + k * 5.5) * BRANCH_DY);
+      if (p.y < -90 || p.y > H + 90) continue;
+      const side = k % 2 ? 1 : -1;
+      const cx = side > 0
+        ? 250 + Math.floor(hash2(k, 3) * 26)
+        : 46 + Math.floor(hash2(k, 3) * 26);
+      const ty = Math.round(p.y);
+      drawCloudBank(cx, ty + 12, 44 + hash2(k, 31) * 14);
+      const s = spr('temple');
+      if (s) {
+        const f = s.frames[0];
+        drawSpr('temple', cx - f.w / 2, ty + 14 - f.h);
+      } else {
+        ctx.fillStyle = '#f4eee0';
+        for (let c = -1; c <= 1; c++) ctx.fillRect(cx + c * 14 - 3, ty - 24, 6, 30);
+        ctx.fillRect(cx - 24, ty - 32, 48, 6);
+      }
+    }
+  }
+
   // The stump the squirrel starts on: its top surface meets the ground
   // perch (branchTip(0)) so the squirrel stands ON something.
   function drawStump(alt) {
@@ -712,6 +798,8 @@ const Scene = (() => {
     drawBirds(alt, now);
     drawUfos(alt, now);
     drawRedPlanet(alt, now);
+    drawHeaven(alt, now);
+    drawAngels(alt, now);
     drawTree(alt, Math.max(branch, jump ? jump.to : 0));
     drawGround(alt);
     drawTreeBase(alt);

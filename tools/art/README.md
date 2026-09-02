@@ -48,6 +48,11 @@ python tools/art/cut-stump.py
 node tools/art/gen-asset.mjs aliens tools/art/prompts/aliens.txt 1024x1024 --ref tools/art/out/squirrel.png
 python tools/art/cut-aliens.py
 
+# Heaven (branch 70+): angel (2 flap frames) + angel.png icon, pearly
+# gates, greek temple
+node tools/art/gen-asset.mjs heaven tools/art/prompts/heaven.txt 1024x1024 --ref tools/art/out/squirrel.png
+python tools/art/cut-heaven.py
+
 # UI + category icons (replace every emoji in the HTML/game UI; game.js
 # maps category emoji -> icon name in CAT_ICONS)
 node tools/art/gen-asset.mjs icons tools/art/prompts/icons.txt 1024x1024 --ref tools/art/out/squirrel.png

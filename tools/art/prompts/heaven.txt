@@ -1,0 +1,19 @@
+16-bit pixel art sprite sheet, Stardew Valley style, crisp chunky pixels,
+no anti-aliasing, clean dark outlines. A 2x2 grid, each sprite centered in
+its own quadrant with generous empty margin, nothing touching quadrant
+edges, plain flat cornflower blue background, no text:
+
+top-left: a small cute cherub angel flying, side view facing RIGHT, white
+robe, golden halo, rosy cheeks, large white feathered wings RAISED high.
+
+top-right: the SAME cherub angel, wings swept DOWN (a flap animation frame
+of the first).
+
+bottom-left: ornate pearly gates: two white marble pillars topped with gold
+finials, tall golden arched gate doors with bar details standing open, a
+small puffy white cloud at the base.
+
+bottom-right: a small Greek temple, white marble, triangular pediment with
+gold trim, four fluted columns, two wide steps at the base.
+
+Consistent palette, at most 16 colors total.
