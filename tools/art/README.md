@@ -38,6 +38,11 @@ python tools/art/cut-backdrops.py
 
 node tools/art/gen-asset.mjs ground tools/art/prompts/ground.txt 1536x1024 --ref tools/art/out/squirrel.png
 python tools/art/cut-ground.py
+
+# UI + category icons (replace every emoji in the HTML/game UI; game.js
+# maps category emoji -> icon name in CAT_ICONS)
+node tools/art/gen-asset.mjs icons tools/art/prompts/icons.txt 1024x1024 --ref tools/art/out/squirrel.png
+python tools/art/cut-icons.py
 ```
 
 Look at each generation before cutting — regenerate with a tweaked prompt if

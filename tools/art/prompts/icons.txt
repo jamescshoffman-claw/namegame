@@ -1,0 +1,20 @@
+16-bit pixel art icon set, Stardew Valley style, crisp chunky pixels, no
+anti-aliasing, clean dark outlines, bright readable colors. A 4x4 grid of 16
+small game icons, each centered in its own cell with generous empty margin,
+nothing touching cell edges, plain background, no text, no grid lines.
+Each icon must read clearly even when tiny:
+
+row 1: a red apple with one leaf; a stacked hamburger; a blue-green planet
+Earth globe; an orange carrot with green top.
+
+row 2: a small red sports car seen from the side; a waving US stars-and-
+stripes flag on a pole; a friendly lion face with round mane; a pizza slice
+with pepperoni.
+
+row 3: a painter's palette with paint dabs; a black-and-white soccer ball; a
+soft-serve ice cream cone; a friendly dog face with floppy ears.
+
+row 4: a brown acorn with cap; an hourglass with golden sand; an open book;
+a small red-and-white rocket ship pointing up.
+
+Consistent warm palette across all 16 icons, at most 24 colors total.

@@ -32,6 +32,16 @@ html, body {
 
 .hidden { display: none !important; }
 
+/* pixel-art icons that stand in for emoji */
+.icon {
+  height: 1.15em;
+  width: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  vertical-align: -0.18em;
+}
+.icon.logo { height: 1.25em; vertical-align: -0.22em; }
+
 /* ---------- HUD ---------- */
 #hud {
   position: absolute;
@@ -63,7 +73,7 @@ html, body {
   55% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
-#score {
+#score, #timer-num {
   background: rgba(20, 16, 12, 0.78);
   color: #ffe9c4;
   border: 2px solid #5a3a20;
@@ -73,6 +83,11 @@ html, body {
   font-size: 15px;
   text-shadow: 1px 1px 0 #000;
   white-space: nowrap;
+}
+#timer-num {
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+  text-align: center;
 }
 #timer-track {
   flex: 1;

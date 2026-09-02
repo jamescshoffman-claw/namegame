@@ -7,6 +7,19 @@
   const BONUS_MS = 5000;    // added per correct answer
   const $ = id => document.getElementById(id);
 
+  // Pixel-art icons replace emoji everywhere in the UI (share text keeps
+  // emoji — it's plain text, images can't ride along to the clipboard).
+  const CAT_ICONS = {
+    '🍎': 'apple', '🍔': 'burger', '🌍': 'globe', '🥕': 'carrot',
+    '🚗': 'car', '🗽': 'flag', '🦁': 'lion', '🍕': 'pizza',
+    '🎨': 'palette', '⚽': 'ball', '🍦': 'icecream', '🐕': 'dog',
+  };
+  function icon(name, dir = 'assets/icons/') {
+    return `<img class="icon" src="${dir}${name}.png" alt="">`;
+  }
+  function catIcon(cat) { return icon(CAT_ICONS[cat.emoji] || 'acorn'); }
+  function setScore(n) { $('score').innerHTML = `${icon('acorn')} ${n}`; }
+
   const practice = new URLSearchParams(location.search).has('practice');
   const day = GameData.dayIndex();
   const cats = GameData.todaysCategories();
@@ -58,6 +71,7 @@
     const frac = Math.min(1, Math.max(0, left / START_MS));
     const bar = $('timer-fill');
     bar.style.width = (frac * 100) + '%';
+    $('timer-num').textContent = Math.max(0, Math.ceil(left / 1000)) + 's';
     bar.style.background = frac > 0.5 ? '#7ac74f' : frac > 0.25 ? '#f0a04b' : '#e04f3f';
     if (left <= 0) { onTimeUp(); return; }
     timerRAF = requestAnimationFrame(tickTimer);
@@ -76,7 +90,7 @@
   function startCategory() {
     const cat = cats[catIdx];
     const pill = $('cat-pill');
-    pill.textContent = `${cat.emoji} ${cat.prompt}`;
+    pill.innerHTML = `${catIcon(cat)} ${cat.prompt}`;
     pill.classList.remove('pop');
     void pill.offsetWidth; // restart the animation
     pill.classList.add('pop');
@@ -104,7 +118,7 @@
     save({ day, played: false, finished: false, score: 0, breakdown: [0, 0, 0], named: [[], [], []] });
     catIdx = 0; score = 0; breakdown = [0, 0, 0]; named = [[], [], []]; used = new Set();
     Scene.reset();
-    $('score').textContent = '🌰 0';
+    setScore(0);
     $('answer').value = '';
     setFeedback('');
     state = 'start';
@@ -132,7 +146,7 @@
     named[catIdx].push(res.entry.c);
     save({ day, played: true, finished: false, score, breakdown, named });
     Scene.hopTo(score);
-    $('score').textContent = `🌰 ${score}`;
+    setScore(score);
     setFeedback(res.exact ? `✓ ${res.entry.c} +5s` : `✓ ${res.entry.c} (close enough!) +5s`, 'good');
     $('answer').value = '';
     extendTimer();
@@ -143,10 +157,10 @@
     if (catIdx < cats.length - 1) {
       state = 'between';
       const next = cats[catIdx + 1];
-      $('between-title').textContent = "⏰ Time's up!";
-      $('between-msg').textContent =
+      $('between-title').innerHTML = `${icon('hourglass')} Time's up!`;
+      $('between-msg').innerHTML =
         `You named ${breakdown[catIdx]} ${cats[catIdx].title.toLowerCase()}. ` +
-        `Next up: ${next.emoji} ${next.title}`;
+        `Next up: ${catIcon(next)} ${next.title}`;
       show('screen-between');
     } else {
       endGame(true);
@@ -174,7 +188,7 @@
       const got = new Set(named[i]);
       const chips = c.entries.map(e =>
         `<span class="chip${got.has(e.c) ? ' got' : ''}">${e.c}</span>`).join('');
-      return `<h3>${c.emoji} ${c.title} <small>${got.size}/${c.entries.length}</small></h3>` +
+      return `<h3>${catIcon(c)} ${c.title} <small>${got.size}/${c.entries.length}</small></h3>` +
         `<div class="chips">${chips}</div>`;
     }).join('');
     $('answers-list').scrollTop = 0;
@@ -187,13 +201,13 @@
   }
 
   function renderOver(sc, bd, finished) {
-    $('over-title').textContent = sc >= 30 ? '🚀 You reached space!'
-      : sc >= 20 ? '🌙 You climbed into the night!'
-      : sc >= 10 ? '🌅 What a climb!'
-      : '🌰 The climb is over!';
+    $('over-title').innerHTML = sc >= 30 ? `${icon('rocket')} You reached space!`
+      : sc >= 20 ? `${icon('moon', 'assets/')} You climbed into the night!`
+      : sc >= 10 ? `${icon('sun', 'assets/')} What a climb!`
+      : `${icon('acorn')} The climb is over!`;
     $('over-score').textContent = `${sc}`;
     $('over-breakdown').innerHTML = cats
-      .map((c, i) => `<div>${c.emoji} ${c.title}: <b>${bd[i]}</b></div>`).join('');
+      .map((c, i) => `<div>${catIcon(c)} ${c.title}: <b>${bd[i]}</b></div>`).join('');
     const s = load();
     $('over-best').textContent = !practice && s.best
       ? `Best climb: ${s.best.score} (Day ${s.best.day + 1})` : '';
@@ -224,7 +238,7 @@
   async function boot() {
     await Scene.init($('scene'));
     Scene.reset();
-    $('score').textContent = '🌰 0';
+    setScore(0);
     $('day-label').textContent = `Day ${day + 1}` + (practice ? ' · practice' : '');
 
     const rec = practice ? null : todaysRecord();
