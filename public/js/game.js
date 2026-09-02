@@ -134,10 +134,12 @@
     const res = Fuzzy.match(raw, cat.entries);
     if (!res) {
       setFeedback(`"${raw}" isn't on our list`, 'bad');
+      $('answer').value = ''; // no manual deleting between guesses
       return;
     }
     if (used.has(res.entry.c)) {
       setFeedback(`Already named ${res.entry.c}!`, 'bad');
+      $('answer').value = '';
       return;
     }
     used.add(res.entry.c);
