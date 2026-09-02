@@ -3,7 +3,8 @@
 // the moment it starts so a refresh can't buy a retry. ?practice bypasses the
 // daily lock and never writes storage.
 (() => {
-  const TIMER_MS = 10000;
+  const START_MS = 20000;   // clock per category
+  const BONUS_MS = 5000;    // added per correct answer
   const $ = id => document.getElementById(id);
 
   const practice = new URLSearchParams(location.search).has('practice');
@@ -45,13 +46,16 @@
 
   // ---------- timer ----------
   function startTimer() {
-    deadline = Date.now() + TIMER_MS;
+    deadline = Date.now() + START_MS;
     cancelAnimationFrame(timerRAF);
     tickTimer();
   }
+  function extendTimer() {
+    deadline += BONUS_MS;
+  }
   function tickTimer() {
     const left = deadline - Date.now();
-    const frac = Math.max(0, left / TIMER_MS);
+    const frac = Math.min(1, Math.max(0, left / START_MS));
     const bar = $('timer-fill');
     bar.style.width = (frac * 100) + '%';
     bar.style.background = frac > 0.5 ? '#7ac74f' : frac > 0.25 ? '#f0a04b' : '#e04f3f';
@@ -71,7 +75,11 @@
 
   function startCategory() {
     const cat = cats[catIdx];
-    $('cat-pill').textContent = `${cat.emoji} ${cat.prompt}`;
+    const pill = $('cat-pill');
+    pill.textContent = `${cat.emoji} ${cat.prompt}`;
+    pill.classList.remove('pop');
+    void pill.offsetWidth; // restart the animation
+    pill.classList.add('pop');
     $('answer').value = '';
     $('answer').focus();
     setFeedback('');
@@ -125,9 +133,9 @@
     save({ day, played: true, finished: false, score, breakdown, named });
     Scene.hopTo(score);
     $('score').textContent = `🌰 ${score}`;
-    setFeedback(res.exact ? `✓ ${res.entry.c}` : `✓ ${res.entry.c} (close enough!)`, 'good');
+    setFeedback(res.exact ? `✓ ${res.entry.c} +5s` : `✓ ${res.entry.c} (close enough!) +5s`, 'good');
     $('answer').value = '';
-    startTimer();
+    extendTimer();
   }
 
   function onTimeUp() {

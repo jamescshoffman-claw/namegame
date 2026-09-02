@@ -1,0 +1,187 @@
+{
+  "sprites": {
+    "squirrel": {
+      "file": "squirrel.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 32
+        },
+        {
+          "x": 32,
+          "y": 0,
+          "w": 32,
+          "h": 32
+        },
+        {
+          "x": 64,
+          "y": 0,
+          "w": 32,
+          "h": 32
+        },
+        {
+          "x": 96,
+          "y": 0,
+          "w": 32,
+          "h": 32
+        }
+      ]
+    },
+    "trunk": {
+      "file": "trunk.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 26,
+          "h": 44
+        }
+      ]
+    },
+    "branch": {
+      "file": "branch.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 68,
+          "h": 54
+        }
+      ]
+    },
+    "treebase": {
+      "file": "treebase.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 96,
+          "h": 86
+        }
+      ]
+    },
+    "leaf": {
+      "file": "leaf.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 30,
+          "h": 26
+        }
+      ]
+    },
+    "sun": {
+      "file": "sun.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 56
+        }
+      ]
+    },
+    "cloud1": {
+      "file": "cloud1.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 48,
+          "h": 28
+        }
+      ]
+    },
+    "cloud2": {
+      "file": "cloud2.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 52,
+          "h": 19
+        }
+      ]
+    },
+    "moon": {
+      "file": "moon.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 47
+        }
+      ]
+    },
+    "star": {
+      "file": "star.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 11,
+          "h": 13
+        }
+      ]
+    },
+    "planet1": {
+      "file": "planet1.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 36,
+          "h": 29
+        }
+      ]
+    },
+    "planet2": {
+      "file": "planet2.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 26,
+          "h": 27
+        }
+      ]
+    },
+    "planet3": {
+      "file": "planet3.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 32,
+          "h": 31
+        }
+      ]
+    },
+    "galaxy": {
+      "file": "galaxy.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 40,
+          "h": 37
+        }
+      ]
+    },
+    "ground": {
+      "file": "ground.png",
+      "frames": [
+        {
+          "x": 0,
+          "y": 0,
+          "w": 320,
+          "h": 147
+        }
+      ]
+    }
+  }
+}

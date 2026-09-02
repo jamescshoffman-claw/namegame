@@ -116,6 +116,50 @@ const Scene = (() => {
     }
   }
 
+  // ---------- generated sprite helpers ----------
+  function spr(name) { return sprites && sprites[name]; }
+
+  // Night variant of a sprite: multiply toward a blue night tone, then
+  // restore the original alpha. Cached per sprite at 4 darkness levels.
+  function tintCanvas(img, t) {
+    const c = document.createElement('canvas');
+    c.width = img.width; c.height = img.height;
+    const g = c.getContext('2d');
+    g.drawImage(img, 0, 0);
+    g.globalCompositeOperation = 'multiply';
+    const v = Math.round(255 - t * 165), b = Math.round(255 - t * 110);
+    g.fillStyle = `rgb(${v},${v},${b})`;
+    g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = 'destination-in';
+    g.drawImage(img, 0, 0);
+    return c;
+  }
+
+  function sprImage(s, dark) {
+    const lv = dark ? Math.min(4, Math.round(dark * 4)) : 0;
+    if (lv <= 0) return s.img;
+    s.tints = s.tints || [];
+    return s.tints[lv] || (s.tints[lv] = tintCanvas(s.img, lv / 4));
+  }
+
+  function drawSpr(name, x, y, opts = {}) {
+    const s = spr(name);
+    if (!s) return false;
+    const f = s.frames[opts.frame || 0];
+    const img = sprImage(s, opts.dark);
+    const w = opts.w || f.w, h = opts.h || f.h;
+    ctx.save();
+    if (opts.alpha != null) ctx.globalAlpha = opts.alpha;
+    if (opts.flip) {
+      ctx.translate(Math.round(x) + w / 2, 0);
+      ctx.scale(-1, 1);
+      ctx.translate(-(Math.round(x) + w / 2), 0);
+    }
+    ctx.drawImage(img, f.x, f.y, f.w, f.h, Math.round(x), Math.round(y), w, h);
+    ctx.restore();
+    return true;
+  }
+
   // ---------- world geometry ----------
   function branchSide(k) { return k % 2 === 1 ? 1 : -1; }
   function branchTip(k) {
@@ -178,8 +222,10 @@ const Scene = (() => {
         const big = hash2(gx + 99, cellY) > 0.85;
         ctx.fillStyle = r < d * 0.06 ? '#fff7d6' : '#cfd8ef';
         if (big) { // four-pointed twinkle
-          ctx.fillRect(sx, sy - 1, 1, 3);
-          ctx.fillRect(sx - 1, sy, 3, 1);
+          if (!drawSpr('star', sx - 5, sy - 6, { alpha: Math.min(1, d) })) {
+            ctx.fillRect(sx, sy - 1, 1, 3);
+            ctx.fillRect(sx - 1, sy, 3, 1);
+          }
         } else {
           ctx.fillRect(sx, sy, 1, 1);
         }
@@ -195,17 +241,20 @@ const Scene = (() => {
       const fade = Math.max(0, 1 - alt / 8);
       ctx.globalAlpha = fade * 0.35;
       pixelCircle(p.x, y, 26, '#ffdf9e');
-      ctx.globalAlpha = fade;
-      pixelCircle(p.x, y, 17, '#ffca5f');
-      pixelCircle(p.x, y, 13, '#ffe9ad');
-      pixelCircle(p.x - 4, y - 4, 6, '#fff7dd');
-      ctx.fillStyle = '#ffca5f';
-      const blink = Math.floor(now / 600) % 2;
-      for (let i = 0; i < 8; i++) {
-        const a = i * Math.PI / 4 + blink * Math.PI / 8;
-        ctx.fillRect(Math.round(p.x + Math.cos(a) * 22), Math.round(y + Math.sin(a) * 22), 2, 2);
-      }
       ctx.globalAlpha = 1;
+      if (!drawSpr('sun', p.x - 26, y - 28, { alpha: fade })) {
+        ctx.globalAlpha = fade;
+        pixelCircle(p.x, y, 17, '#ffca5f');
+        pixelCircle(p.x, y, 13, '#ffe9ad');
+        pixelCircle(p.x - 4, y - 4, 6, '#fff7dd');
+        ctx.fillStyle = '#ffca5f';
+        const blink = Math.floor(now / 600) % 2;
+        for (let i = 0; i < 8; i++) {
+          const a = i * Math.PI / 4 + blink * Math.PI / 8;
+          ctx.fillRect(Math.round(p.x + Math.cos(a) * 22), Math.round(y + Math.sin(a) * 22), 2, 2);
+        }
+        ctx.globalAlpha = 1;
+      }
     }
     // Moon with glow and craters through the night band
     const mp = toScreen(252, -26 * BRANCH_DY);
@@ -213,24 +262,28 @@ const Scene = (() => {
       ctx.globalAlpha = 0.25;
       pixelCircle(mp.x, mp.y, 20, '#cdd6ec');
       ctx.globalAlpha = 1;
-      pixelCircle(mp.x, mp.y, 14, '#e8e6da');
-      pixelCircle(mp.x + 3, mp.y - 2, 12, '#f4f2e6');
-      ctx.fillStyle = '#c9c7bb';
-      ctx.fillRect(mp.x - 8, mp.y + 3, 4, 3);
-      ctx.fillRect(mp.x - 2, mp.y - 7, 3, 2);
-      ctx.fillRect(mp.x + 4, mp.y + 6, 2, 2);
-      ctx.fillRect(mp.x + 6, mp.y - 1, 2, 2);
+      if (!drawSpr('moon', mp.x - 16, mp.y - 23)) {
+        pixelCircle(mp.x, mp.y, 14, '#e8e6da');
+        pixelCircle(mp.x + 3, mp.y - 2, 12, '#f4f2e6');
+        ctx.fillStyle = '#c9c7bb';
+        ctx.fillRect(mp.x - 8, mp.y + 3, 4, 3);
+        ctx.fillRect(mp.x - 2, mp.y - 7, 3, 2);
+        ctx.fillRect(mp.x + 4, mp.y + 6, 2, 2);
+        ctx.fillRect(mp.x + 6, mp.y - 1, 2, 2);
+      }
     }
     // Planets in space, shaded with a lit side and a dark limb
     const planets = [
-      { alt: 40, x: 62, r: 13, base: '#d98f4e', lit: '#f0b579', dark: '#9c6132', ring: '#e8d8a8' },
-      { alt: 47, x: 246, r: 8, base: '#c1533f', lit: '#e07b5c', dark: '#8a3527' },
-      { alt: 54, x: 110, r: 11, base: '#5a8fd4', lit: '#8fb8e8', dark: '#3a5f9c', moonlet: true },
-      { alt: 62, x: 220, r: 15, base: '#9a7bc9', lit: '#c0a4e6', dark: '#6b4f96', ring: '#d8c8f0' },
+      { alt: 40, x: 62, r: 13, sprite: 'planet1', base: '#d98f4e', lit: '#f0b579', dark: '#9c6132', ring: '#e8d8a8' },
+      { alt: 47, x: 246, r: 8, sprite: 'planet2', base: '#c1533f', lit: '#e07b5c', dark: '#8a3527' },
+      { alt: 54, x: 110, r: 11, sprite: 'planet3', base: '#5a8fd4', lit: '#8fb8e8', dark: '#3a5f9c', moonlet: true },
+      { alt: 62, x: 220, r: 15, sprite: 'galaxy', base: '#9a7bc9', lit: '#c0a4e6', dark: '#6b4f96', ring: '#d8c8f0' },
     ];
     for (const pl of planets) {
       const pp = toScreen(pl.x, -pl.alt * BRANCH_DY);
       if (pp.y < -50 || pp.y > H + 50) continue;
+      const ps = spr(pl.sprite);
+      if (ps && drawSpr(pl.sprite, pp.x - ps.frames[0].w / 2, pp.y - ps.frames[0].h / 2)) continue;
       pixelCircle(pp.x, pp.y, pl.r, pl.dark);
       pixelCircle(pp.x - 2, pp.y - 2, pl.r - 1, pl.base);
       pixelCircle(pp.x - Math.ceil(pl.r / 3), pp.y - Math.ceil(pl.r / 3), Math.max(2, pl.r - 5), pl.lit);
@@ -257,6 +310,11 @@ const Scene = (() => {
       if (p.y < -30 || p.y > H + 30) continue;
       const cx = Math.floor(hash2(i, 7) * (W - 60)) + 30;
       const big = hash2(i, 3) > 0.5;
+      const cs = spr(big ? 'cloud1' : 'cloud2');
+      if (cs) {
+        drawSpr(big ? 'cloud1' : 'cloud2', cx - cs.frames[0].w / 2, p.y - cs.frames[0].h / 2);
+        continue;
+      }
       const r = big ? 11 : 8;
       // puffy 3-lobed cloud with a flat shaded base
       pixelCircle(cx - r, p.y + 2, r - 2, '#cfd4e2');
@@ -294,6 +352,17 @@ const Scene = (() => {
     if (p.y > H + 80) return;
     const gy = p.y + 8;
     const dk = darkness(alt);
+    const gs = spr('ground');
+    if (gs) {
+      const f = gs.frames[0];
+      const top = gy - 16;                    // solid grass line sits at gy
+      drawSpr('ground', 0, top, { dark: dk });
+      if (top + f.h < H) {                    // stretch the bottom dirt row down
+        const img = sprImage(gs, dk);
+        ctx.drawImage(img, f.x, f.y + f.h - 1, f.w, 1, 0, top + f.h - 1, W, H - (top + f.h - 1));
+      }
+      return;
+    }
     const grass = css(lerpC([95, 158, 61], [40, 80, 48], dk));
     const grassLight = css(lerpC([133, 190, 86], [60, 104, 62], dk));
     const grassDark = css(lerpC([70, 122, 48], [28, 60, 38], dk));
@@ -341,33 +410,47 @@ const Scene = (() => {
     const bottom = Math.min(toScreen(0, 12).y, H);
     const hw = TRUNK_W / 2;
     const leaves = leafPalette(alt);
+    const dk = darkness(alt);
 
-    // trunk: core, shaded edges, wavy bark ridges, knots
-    ctx.fillStyle = '#6b4a2f';
-    ctx.fillRect(TRUNK_X - hw, top, TRUNK_W, bottom - top);
-    ctx.fillStyle = '#7d5836';
-    ctx.fillRect(TRUNK_X - hw + 4, top, 5, bottom - top);
-    ctx.fillStyle = '#4a3220';
-    ctx.fillRect(TRUNK_X - hw, top, 3, bottom - top);
-    ctx.fillRect(TRUNK_X + hw - 4, top, 4, bottom - top);
-    ctx.fillStyle = '#5a3a20';
-    for (let y = Math.floor(top / 4) * 4; y < bottom; y += 4) {
-      const wob = Math.floor(hash2(3, Math.floor(y / 16)) * 3);
-      if (hash2(2, y) > 0.35) ctx.fillRect(TRUNK_X - 1 + wob, y, 2, 3);
-      if (hash2(9, y) > 0.6) ctx.fillRect(TRUNK_X - hw + 6, y, 2, 2);
-    }
-    for (let y = Math.floor(top / 40) * 40; y < bottom; y += 40) {
-      if (hash2(5, y) > 0.5) { // knot
-        const kx = TRUNK_X - 4 + Math.floor(hash2(6, y) * 8);
-        ctx.fillStyle = '#4a3220';
-        pixelCircle(kx, y + 20, 3, '#4a3220');
-        ctx.fillStyle = '#3a2618';
-        ctx.fillRect(kx - 1, y + 19, 2, 2);
+    const trunkS = spr('trunk');
+    if (trunkS) {
+      // tile the bark sprite anchored to world space so it doesn't crawl
+      const f = trunkS.frames[0];
+      const first = Math.floor((cameraY - H * 0.62) / f.h) - 1;
+      for (let k = first; ; k++) {
+        const y = H * 0.62 + k * f.h - cameraY;
+        if (y > bottom) break;
+        if (y + f.h < top) continue;
+        drawSpr('trunk', TRUNK_X - f.w / 2, y, { dark: dk });
+      }
+    } else {
+      // trunk: core, shaded edges, wavy bark ridges, knots
+      ctx.fillStyle = '#6b4a2f';
+      ctx.fillRect(TRUNK_X - hw, top, TRUNK_W, bottom - top);
+      ctx.fillStyle = '#7d5836';
+      ctx.fillRect(TRUNK_X - hw + 4, top, 5, bottom - top);
+      ctx.fillStyle = '#4a3220';
+      ctx.fillRect(TRUNK_X - hw, top, 3, bottom - top);
+      ctx.fillRect(TRUNK_X + hw - 4, top, 4, bottom - top);
+      ctx.fillStyle = '#5a3a20';
+      for (let y = Math.floor(top / 4) * 4; y < bottom; y += 4) {
+        const wob = Math.floor(hash2(3, Math.floor(y / 16)) * 3);
+        if (hash2(2, y) > 0.35) ctx.fillRect(TRUNK_X - 1 + wob, y, 2, 3);
+        if (hash2(9, y) > 0.6) ctx.fillRect(TRUNK_X - hw + 6, y, 2, 2);
+      }
+      for (let y = Math.floor(top / 40) * 40; y < bottom; y += 40) {
+        if (hash2(5, y) > 0.5) { // knot
+          const kx = TRUNK_X - 4 + Math.floor(hash2(6, y) * 8);
+          ctx.fillStyle = '#4a3220';
+          pixelCircle(kx, y + 20, 3, '#4a3220');
+          ctx.fillStyle = '#3a2618';
+          ctx.fillRect(kx - 1, y + 19, 2, 2);
+        }
       }
     }
-    // roots flare
+    // roots flare (the treebase sprite replaces this, drawn over the ground)
     const g = toScreen(0, 0);
-    if (g.y < H + 30) {
+    if (g.y < H + 30 && !spr('treebase')) {
       ctx.fillStyle = '#6b4a2f';
       ctx.fillRect(TRUNK_X - hw - 6, g.y + 2, TRUNK_W + 12, 8);
       ctx.fillRect(TRUNK_X - hw - 12, g.y + 7, TRUNK_W + 24, 4);
@@ -379,8 +462,14 @@ const Scene = (() => {
     // branches with leaf clusters and the odd berry
     for (let k = 1; k <= maxBranch + 6; k++) {
       const p = toScreen(TRUNK_X, -k * BRANCH_DY);
-      if (p.y < -40 || p.y > H + 40) continue;
+      if (p.y < -60 || p.y > H + 60) continue;
       const side = branchSide(k);
+      const bs = spr('branch');
+      if (bs) {
+        const x = side > 0 ? TRUNK_X + hw - 8 : TRUNK_X - hw + 8 - bs.frames[0].w;
+        drawSpr('branch', x, p.y - 23, { dark: dk, flip: side < 0 });
+        continue;
+      }
       const x0 = side > 0 ? TRUNK_X + hw - 2 : TRUNK_X - hw + 2 - BRANCH_LEN;
       // branch wood: top light, body, under-shadow, tapered tip
       ctx.fillStyle = '#5a3a20';
@@ -409,6 +498,16 @@ const Scene = (() => {
     }
   }
 
+  // The generated tree base (roots + grass tufts) sits ON the ground layer
+  function drawTreeBase(alt) {
+    const s = spr('treebase');
+    if (!s) return;
+    const p = toScreen(0, 0);
+    if (p.y > H + 100) return;
+    const f = s.frames[0];
+    drawSpr('treebase', TRUNK_X - f.w / 2, p.y + 20 - f.h, { dark: darkness(alt) });
+  }
+
   function squirrelPos(now) {
     if (!jump) return branchTip(branch);
     const t = Math.min(1, (now - jump.t0) / jump.dur);
@@ -427,10 +526,12 @@ const Scene = (() => {
     const flip = jump ? branchTip(jump.to).x < branchTip(jump.from).x
                       : branch !== 0 && branchSide(branch) > 0;
     if (sprites && sprites.squirrel) {
-      const fr = sprites.squirrel.frames[pos.mid ? 1 : 0];
+      const s = sprites.squirrel;
+      const fr = s.frames[pos.mid ? 1 : 0];
+      const img = sprImage(s, darkness(-cameraY / BRANCH_DY));
       ctx.save();
       if (flip) { ctx.translate(p.x, 0); ctx.scale(-1, 1); ctx.translate(-p.x, 0); }
-      ctx.drawImage(sprites.squirrel.img, fr.x, fr.y, fr.w, fr.h,
+      ctx.drawImage(img, fr.x, fr.y, fr.w, fr.h,
         p.x - 16, p.y - 30, 32, 32);
       ctx.restore();
     } else {
@@ -454,6 +555,7 @@ const Scene = (() => {
     drawBirds(alt, now);
     drawTree(alt, Math.max(branch, jump ? jump.to : 0));
     drawGround(alt);
+    drawTreeBase(alt);
     drawSquirrel(now);
     requestAnimationFrame(frame);
   }

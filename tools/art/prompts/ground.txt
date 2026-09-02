@@ -1,0 +1,15 @@
+16-bit pixel art ground strip for a 2D game, Stardew Valley style, crisp
+chunky pixels, no anti-aliasing. A single wide horizontal strip filling the
+full image width, seamlessly tileable LEFT-TO-RIGHT.
+
+Top third: lush green grass seen from the side, with individual grass blades
+poking up along the top edge, a few tiny wildflowers (pink, yellow, white),
+lighter highlight pixels on the blade tips.
+
+Bottom two thirds: rich brown soil in cross-section, with darker horizontal
+strata lines, scattered small stones and pebbles in grey, a few small root
+tips.
+
+Warm sunrise lighting. Consistent palette of at most 14 colors. No sky, no
+characters, no text. The strip spans the ENTIRE image edge to edge with the
+grass top edge roughly one third from the top of the image.

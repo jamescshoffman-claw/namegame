@@ -24,19 +24,43 @@ FRAME = 32
 # grid order in the prompt: sit, leap / crouch, land — keep sit and leap first
 CELLS = [(0, 0), (1, 0), (0, 1), (1, 1)]
 
-WHITE_THRESHOLD = 245  # if the sheet has no alpha, near-white becomes clear
+BG_TOLERANCE = 42  # max channel distance from the edge background color
 
 
 def to_alpha(img):
+    """Key out the flat background by flood-filling from the image edges.
+
+    Generations often come back opaque on a flat (not always white) field;
+    flood fill only clears background connected to the border, so body
+    colors that happen to be close to the background survive.
+    """
     img = img.convert("RGBA")
     if img.getextrema()[3][0] < 255:
         return img  # already has real transparency
     px = img.load()
-    for y in range(img.height):
-        for x in range(img.width):
-            r, g, b, a = px[x, y]
-            if r >= WHITE_THRESHOLD and g >= WHITE_THRESHOLD and b >= WHITE_THRESHOLD:
-                px[x, y] = (0, 0, 0, 0)
+    w, h = img.width, img.height
+    corners = [px[0, 0], px[w - 1, 0], px[0, h - 1], px[w - 1, h - 1]]
+    bg = tuple(sorted(c[i] for c in corners)[1] for i in range(3))  # per-channel median-ish
+
+    def is_bg(p):
+        return all(abs(p[i] - bg[i]) <= BG_TOLERANCE for i in range(3))
+
+    seen = bytearray(w * h)
+    stack = [(x, y) for x in range(w) for y in (0, h - 1) if is_bg(px[x, y])]
+    stack += [(x, y) for y in range(h) for x in (0, w - 1) if is_bg(px[x, y])]
+    while stack:
+        x, y = stack.pop()
+        i = y * w + x
+        if seen[i]:
+            continue
+        seen[i] = 1
+        if not is_bg(px[x, y]):
+            continue
+        px[x, y] = (0, 0, 0, 0)
+        if x > 0: stack.append((x - 1, y))
+        if x < w - 1: stack.append((x + 1, y))
+        if y > 0: stack.append((x, y - 1))
+        if y < h - 1: stack.append((x, y + 1))
     return img
 
 
