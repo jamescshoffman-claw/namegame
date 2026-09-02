@@ -5,8 +5,7 @@
 // draining while the page is closed). ?practice bypasses the daily lock and
 // never writes storage.
 (() => {
-  const START_MS = 20000;   // clock per category
-  const BONUS_MS = 3000;    // added per correct answer
+  const START_MS = 10000;   // the clock; every correct answer resets it
   const $ = id => document.getElementById(id);
 
   // Pixel-art icons replace emoji everywhere in the UI (share text keeps
@@ -70,7 +69,7 @@
     tickTimer();
   }
   function extendTimer() {
-    deadline += BONUS_MS;
+    deadline = Date.now() + START_MS; // full reset — 10-second bursts
   }
   function tickTimer() {
     const left = deadline - Date.now();
@@ -163,7 +162,7 @@
     saveProgress();
     Scene.hopTo(score);
     setScore(score);
-    setFeedback(res.exact ? `✓ ${res.entry.c} +3s` : `✓ ${res.entry.c} (close enough!) +3s`, 'good');
+    setFeedback(res.exact ? `✓ ${res.entry.c}` : `✓ ${res.entry.c} (close enough!)`, 'good');
     $('answer').value = '';
   }
 
