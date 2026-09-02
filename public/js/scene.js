@@ -18,6 +18,8 @@ const Scene = (() => {
   let jump = null;               // {from, to, t0, dur} while mid-hop
   let sprites = null;            // loaded from assets/manifest.json if present
   let running = false;
+  let viewFrac = 1;              // fraction of the canvas not covered by the keyboard
+  let anchor = H * 0.62;         // screen y the camera pins cameraY to (eased)
 
   // ---------- deterministic hash noise (stable placement of everything) ----------
   function hash2(x, y) {
@@ -167,7 +169,7 @@ const Scene = (() => {
     return { x: TRUNK_X + branchSide(k) * (BRANCH_LEN - 6), y: -k * BRANCH_DY };
   }
 
-  function toScreen(wx, wy) { return { x: wx, y: H * 0.62 + (wy - cameraY) }; }
+  function toScreen(wx, wy) { return { x: wx, y: anchor + (wy - cameraY) }; }
 
   // ---------- drawing helpers ----------
   function pixelCircle(cx, cy, rad, col) {
@@ -416,9 +418,9 @@ const Scene = (() => {
     if (trunkS) {
       // tile the bark sprite anchored to world space so it doesn't crawl
       const f = trunkS.frames[0];
-      const first = Math.floor((cameraY - H * 0.62) / f.h) - 1;
+      const first = Math.floor((cameraY - anchor) / f.h) - 1;
       for (let k = first; ; k++) {
-        const y = H * 0.62 + k * f.h - cameraY;
+        const y = anchor + k * f.h - cameraY;
         if (y > bottom) break;
         if (y + f.h < top) continue;
         drawSpr('trunk', TRUNK_X - f.w / 2, y, { dark: dk });
@@ -569,6 +571,9 @@ const Scene = (() => {
       ? lerp(branchTip(jump.from).y, branchTip(jump.to).y, Math.min(1, (now - jump.t0) / jump.dur))
       : branchTip(branch).y;
     cameraY += (target - cameraY) * 0.08;
+    // keyboard up → the visible strip shrinks; keep the squirrel at the
+    // same relative height within it
+    anchor += (H * viewFrac * 0.62 - anchor) * 0.15;
     const alt = -cameraY / BRANCH_DY;
 
     drawSky(alt);
@@ -616,5 +621,9 @@ const Scene = (() => {
     jump = { from, to: k, t0: performance.now(), dur: 320 };
   }
 
-  return { init, reset, hopTo };
+  function setViewFraction(f) {
+    viewFrac = Math.max(0.35, Math.min(1, f));
+  }
+
+  return { init, reset, hopTo, setViewFraction };
 })();

@@ -14,12 +14,12 @@ html, body {
 
 #stage {
   position: relative;
-  /* --vvh tracks the visual viewport so the input bar rides above the
-     on-screen keyboard instead of hiding underneath it */
-  height: var(--vvh, 100svh);
-  max-width: calc(var(--vvh, 100svh) * 320 / 480);
+  /* Full screen always — the keyboard overlays the scene instead of
+     shrinking it (the scene shifts its camera to keep the squirrel
+     visible; the input bar rides up by --kb) */
+  height: 100svh;
+  max-width: calc(100svh * 320 / 480);
   margin: 0 auto;
-  transition: height 0.15s ease-out;
 }
 
 #scene {
@@ -112,9 +112,11 @@ html, body {
 #input-bar {
   position: absolute;
   left: 10px; right: 10px;
-  bottom: max(12px, env(safe-area-inset-bottom));
+  /* --kb = height of the on-screen keyboard overlap; 0 when closed */
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--kb, 0px));
   display: flex;
   gap: 8px;
+  transition: bottom 0.15s ease-out;
 }
 #answer {
   flex: 1;

@@ -285,12 +285,17 @@
     // dismiss the mobile keyboard between every answer.
     $('btn-go').addEventListener('pointerdown', e => e.preventDefault());
 
-    // Track the visual viewport so the input bar sits above the on-screen
-    // keyboard (iOS overlays the keyboard instead of resizing the page).
+    // The on-screen keyboard overlays the scene (interactive-widget=
+    // overlays-content; iOS always overlays). Track the visual viewport to
+    // ride the input bar above the keyboard (--kb) and tell the scene how
+    // much of the canvas stays visible so the squirrel isn't covered.
     if (window.visualViewport) {
       const vv = window.visualViewport;
       const fit = () => {
+        const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
         document.documentElement.style.setProperty('--vvh', vv.height + 'px');
+        document.documentElement.style.setProperty('--kb', kb + 'px');
+        Scene.setViewFraction(vv.height / window.innerHeight);
         window.scrollTo(0, 0);
       };
       vv.addEventListener('resize', fit);
