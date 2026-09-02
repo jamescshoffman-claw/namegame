@@ -308,10 +308,17 @@
     if (window.visualViewport) {
       const vv = window.visualViewport;
       const fit = () => {
-        const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
         document.documentElement.style.setProperty('--vvh', vv.height + 'px');
+        // Measure how much of the STAGE the keyboard covers — innerHeight
+        // is unreliable on iOS (it can shrink with the keyboard, hiding
+        // the occlusion). Client rects are in layout-viewport coords, the
+        // same space as vv.offsetTop/height.
+        const r = $('stage').getBoundingClientRect();
+        const visBottom = Math.min(r.bottom, vv.offsetTop + vv.height);
+        const kb = Math.max(0, r.bottom - visBottom);
         document.documentElement.style.setProperty('--kb', kb + 'px');
-        Scene.setViewFraction(vv.height / window.innerHeight);
+        const vis = Math.max(0, visBottom - Math.max(r.top, vv.offsetTop));
+        Scene.setViewFraction(r.height > 0 ? vis / r.height : 1);
         window.scrollTo(0, 0);
       };
       vv.addEventListener('resize', fit);

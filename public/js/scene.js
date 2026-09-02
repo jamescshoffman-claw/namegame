@@ -572,9 +572,10 @@ const Scene = (() => {
       ? lerp(branchTip(jump.from).y, branchTip(jump.to).y, Math.min(1, (now - jump.t0) / jump.dur))
       : branchTip(branch).y;
     cameraY += (target - cameraY) * 0.08;
-    // keyboard up → the visible strip shrinks; keep the squirrel at the
-    // same relative height within it
-    anchor += (H * viewFrac * 0.62 - anchor) * 0.15;
+    // keyboard up → the visible strip shrinks; ride the squirrel higher in
+    // it than the usual 62% so he sits clearly above the keyboard
+    const rel = 0.62 - (1 - viewFrac) * 0.28;
+    anchor += (H * viewFrac * rel - anchor) * 0.15;
     const alt = -cameraY / BRANCH_DY;
 
     drawSky(alt);
