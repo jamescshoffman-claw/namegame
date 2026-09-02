@@ -4,7 +4,7 @@
 // daily lock and never writes storage.
 (() => {
   const START_MS = 20000;   // clock per category
-  const BONUS_MS = 5000;    // added per correct answer
+  const BONUS_MS = 4000;    // added per correct answer
   const $ = id => document.getElementById(id);
 
   // Pixel-art icons replace emoji everywhere in the UI (share text keeps
@@ -147,7 +147,7 @@
     save({ day, played: true, finished: false, score, breakdown, named });
     Scene.hopTo(score);
     setScore(score);
-    setFeedback(res.exact ? `✓ ${res.entry.c} +5s` : `✓ ${res.entry.c} (close enough!) +5s`, 'good');
+    setFeedback(res.exact ? `✓ ${res.entry.c} +4s` : `✓ ${res.entry.c} (close enough!) +4s`, 'good');
     $('answer').value = '';
     extendTimer();
   }
