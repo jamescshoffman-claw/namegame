@@ -166,7 +166,8 @@ const Scene = (() => {
   function branchSide(k) { return k % 2 === 1 ? 1 : -1; }
   function branchTip(k) {
     if (k === 0) return { x: TRUNK_X + 30, y: -6 };
-    return { x: TRUNK_X + branchSide(k) * (BRANCH_LEN - 6), y: -k * BRANCH_DY };
+    // land mid-branch, on the wood, not out at the leafy tip
+    return { x: TRUNK_X + branchSide(k) * 30, y: -k * BRANCH_DY };
   }
 
   function toScreen(wx, wy) { return { x: wx, y: anchor + (wy - cameraY) }; }
