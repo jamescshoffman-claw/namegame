@@ -240,8 +240,6 @@
     Scene.reset();
     setScore(0);
     $('day-label').textContent = `Day ${day + 1}` + (practice ? ' · practice' : '');
-    $('start-cats').innerHTML = cats
-      .map(c => `<div>${catIcon(c)} ${c.title}</div>`).join('');
 
     const rec = practice ? null : todaysRecord();
     if (rec && rec.played) {
