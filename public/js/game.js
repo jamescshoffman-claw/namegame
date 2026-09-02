@@ -339,6 +339,8 @@
     document.addEventListener('keydown', e => {
       if (e.key.length === 1) secret = (secret + e.key.toLowerCase()).slice(-3);
       if (secret === 'try' && state !== 'playing') { secret = ''; devRestart(); }
+      // Dev: Insert wipes today's attempt and restarts from the beginning
+      if (e.key === 'Insert') { devRestart(); return; }
       // Dev: Home climbs one branch as if a correct answer landed
       if (e.key === 'Home' && state === 'playing') {
         score++;
