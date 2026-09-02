@@ -365,6 +365,22 @@
       };
       vv.addEventListener('resize', fit);
       vv.addEventListener('scroll', fit);
+      window.addEventListener('resize', fit);
+      window.addEventListener('orientationchange', fit);
+      // iOS fires viewport events late (or not at all) while the keyboard
+      // animates in — re-measure in a short burst around focus changes, and
+      // keep a slow heartbeat so a missed event can never strand the input
+      // bar under the keyboard.
+      let burst = null;
+      const kick = () => {
+        fit();
+        clearInterval(burst);
+        let n = 15;
+        burst = setInterval(() => { fit(); if (--n <= 0) clearInterval(burst); }, 100);
+      };
+      $('answer').addEventListener('focus', kick);
+      $('answer').addEventListener('blur', kick);
+      setInterval(fit, 500);
       fit();
     }
   }
