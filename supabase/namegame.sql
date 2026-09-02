@@ -29,17 +29,21 @@ create index if not exists namegame_runs_day_score
 
 alter table public.namegame_runs enable row level security;
 
+-- PostgREST needs table privileges AND a passing RLS policy.
+grant usage on schema public to anon, authenticated;
+grant insert, update on public.namegame_runs to anon, authenticated;
+
 -- Post a run (the client upserts, so replays of the same day update the row).
 drop policy if exists "namegame: anyone can post a run" on public.namegame_runs;
 create policy "namegame: anyone can post a run"
   on public.namegame_runs for insert
-  to anon, authenticated
+  to public
   with check (true);
 
 drop policy if exists "namegame: replays update a row" on public.namegame_runs;
 create policy "namegame: replays update a row"
   on public.namegame_runs for update
-  to anon, authenticated
+  to public
   using (true)
   with check (true);
 
