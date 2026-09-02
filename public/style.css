@@ -1,0 +1,159 @@
+* { margin: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #12100e;
+  font-family: "Avenir Next", -apple-system, "Segoe UI", sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;   /* no pull-to-refresh mid-climb */
+  touch-action: manipulation;  /* no double-tap zoom delay */
+  -webkit-tap-highlight-color: transparent;
+  position: fixed;             /* iOS: stop rubber-band scrolling the page */
+  width: 100%;
+}
+
+#stage {
+  position: relative;
+  /* --vvh tracks the visual viewport so the input bar rides above the
+     on-screen keyboard instead of hiding underneath it */
+  height: var(--vvh, 100svh);
+  max-width: calc(var(--vvh, 100svh) * 320 / 480);
+  margin: 0 auto;
+  transition: height 0.15s ease-out;
+}
+
+#scene {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.hidden { display: none !important; }
+
+/* ---------- HUD ---------- */
+#hud {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: 10px; right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+#hud-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+#cat-pill, #score {
+  background: rgba(20, 16, 12, 0.78);
+  color: #ffe9c4;
+  border: 2px solid #5a3a20;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-weight: 800;
+  font-size: 15px;
+  text-shadow: 1px 1px 0 #000;
+}
+#timer-track {
+  height: 12px;
+  background: rgba(20, 16, 12, 0.78);
+  border: 2px solid #5a3a20;
+  border-radius: 4px;
+  overflow: hidden;
+}
+#timer-fill { height: 100%; width: 100%; background: #7ac74f; }
+#feedback {
+  min-height: 22px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 15px;
+  text-shadow: 1px 1px 0 #000, -1px 1px 0 #000, 1px -1px 0 #000, -1px -1px 0 #000;
+}
+#feedback.good { color: #9dff6e; }
+#feedback.bad  { color: #ff8d7a; }
+
+/* ---------- input ---------- */
+#input-bar {
+  position: absolute;
+  left: 10px; right: 10px;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 8px;
+}
+#answer {
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px 14px;
+  border: 3px solid #5a3a20;
+  border-radius: 6px;
+  background: #fff7e8;
+  color: #2a1c10;
+  outline: none;
+}
+#answer:focus { border-color: #b5622d; }
+#btn-go {
+  font-size: 18px;
+  font-weight: 800;
+  padding: 0 22px;
+  border: 3px solid #5a3a20;
+  border-radius: 6px;
+  background: #7ac74f;
+  color: #1c2e10;
+  cursor: pointer;
+}
+#btn-go:active { transform: translateY(2px); }
+
+.shake { animation: shake 0.3s; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* ---------- screens ---------- */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 8, 6, 0.45);
+  padding: 20px;
+}
+.panel {
+  width: 100%;
+  max-width: 300px;
+  background: #fff3dd;
+  border: 4px solid #5a3a20;
+  border-radius: 10px;
+  box-shadow: 0 6px 0 #3c2614, 0 12px 24px rgba(0,0,0,0.4);
+  padding: 22px 18px;
+  text-align: center;
+  color: #2a1c10;
+}
+.panel h1 { font-size: 30px; letter-spacing: -0.5px; }
+.panel h2 { font-size: 24px; }
+.tagline { margin-top: 8px; font-weight: 600; color: #6b4a2f; }
+.day { margin-top: 10px; font-weight: 800; color: #b5622d; }
+.rules { margin-top: 10px; font-size: 13px; color: #6b4a2f; line-height: 1.5; }
+button.big {
+  margin-top: 16px;
+  width: 100%;
+  font-size: 18px;
+  font-weight: 800;
+  padding: 14px;
+  border: 3px solid #3c2614;
+  border-radius: 8px;
+  background: #e0562c;
+  color: #fff3dd;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #3c2614;
+}
+button.big:active { transform: translateY(3px); box-shadow: 0 1px 0 #3c2614; }
+#between-msg { margin-top: 10px; font-weight: 600; color: #6b4a2f; line-height: 1.5; }
+#over-score { font-size: 56px; font-weight: 900; color: #e0562c; margin-top: 6px; }
+.branches-label { font-size: 13px; font-weight: 700; color: #6b4a2f; margin-bottom: 12px; }
+#over-breakdown { display: grid; gap: 4px; font-size: 15px; }
+#over-best { margin-top: 10px; font-size: 13px; font-weight: 700; color: #b5622d; }
+#over-note { margin-top: 6px; font-size: 12px; color: #997a5a; }
+#countdown { margin-top: 12px; font-size: 13px; font-weight: 700; color: #6b4a2f; font-variant-numeric: tabular-nums; }

@@ -1,0 +1,20 @@
+16-bit pixel art sprite sheet of one cute red-brown squirrel, Stardew Valley
+style, crisp chunky pixels, no anti-aliasing, no outlines bleeding, clean
+silhouette. A 2x2 grid of four poses of the SAME squirrel, side view facing
+RIGHT, each pose centered in its own quadrant with generous empty margin,
+nothing touching the quadrant edges:
+
+top-left: sitting upright on its haunches, big fluffy tail curled up behind
+its back, tiny front paws held to chest, alert happy expression.
+
+top-right: mid-leap, body stretched out horizontally, front legs reaching
+forward, back legs extended behind, tail streaming straight back.
+
+bottom-left: crouched low, ready to jump, tail flat.
+
+bottom-right: landing, front paws touching down, tail high.
+
+Warm russet fur with cream belly, small black eye with a single white
+highlight pixel, small rounded ear. Consistent palette of at most 8 colors
+across all four poses. Plain background, no branch, no ground, no shadows,
+no text, no grid lines.

@@ -2,52 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>namegame.fun</title>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --bg: #faf7f2;
-      --fg: #1c1b1a;
-      --accent: #e0562c;
-      --muted: #6b6660;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #171513;
-        --fg: #f0ede8;
-        --accent: #ff7a4d;
-        --muted: #9a938b;
-      }
-    }
-    * { margin: 0; box-sizing: border-box; }
-    body {
-      background: var(--bg);
-      color: var(--fg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      min-height: 100svh;
-      display: grid;
-      place-items: center;
-      padding: 2rem;
-    }
-    main { text-align: center; max-width: 32rem; }
-    h1 {
-      font-size: clamp(2.5rem, 8vw, 4.5rem);
-      letter-spacing: -0.03em;
-      line-height: 1.05;
-    }
-    h1 span { color: var(--accent); }
-    p {
-      margin-top: 1rem;
-      font-size: 1.125rem;
-      color: var(--muted);
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#12100e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>NameGame — the daily naming climb</title>
+  <meta name="description" content="Name things, climb the tree. A free daily word game — 10 seconds per answer, from sunrise to space.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐿️</text></svg>">
 </head>
 <body>
-  <main>
-    <h1>name<span>game</span>.fun</h1>
-    <p>Something fun is coming soon.</p>
-  </main>
+  <div id="stage">
+    <canvas id="scene"></canvas>
+
+    <div id="hud" class="hidden">
+      <div id="hud-top">
+        <span id="cat-pill"></span>
+        <span id="score">🌰 0</span>
+      </div>
+      <div id="timer-track"><div id="timer-fill"></div></div>
+      <div id="feedback"></div>
+    </div>
+
+    <form id="answer-form" autocomplete="off">
+      <div id="input-bar" class="hidden">
+        <input id="answer" type="text" placeholder="type your answer…" enterkeyhint="go"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <button type="submit" id="btn-go">Go</button>
+      </div>
+    </form>
+
+    <div id="screen-start" class="screen hidden">
+      <div class="panel">
+        <h1>🐿️ NameGame</h1>
+        <p class="tagline">Name things. Climb the tree.<br>Sunrise to space.</p>
+        <p id="day-label" class="day"></p>
+        <p class="rules">3 categories · 10 seconds per answer<br>every correct answer resets the clock</p>
+        <button id="btn-begin" class="big">Begin Today's Climb</button>
+      </div>
+    </div>
+
+    <div id="screen-between" class="screen hidden">
+      <div class="panel">
+        <h2 id="between-title"></h2>
+        <p id="between-msg"></p>
+        <button id="btn-climb" class="big">Keep Climbing 🌳</button>
+      </div>
+    </div>
+
+    <div id="screen-over" class="screen hidden">
+      <div class="panel">
+        <h2 id="over-title"></h2>
+        <div id="over-score"></div>
+        <p class="branches-label">branches climbed</p>
+        <div id="over-breakdown"></div>
+        <p id="over-best"></p>
+        <p id="over-note"></p>
+        <button id="btn-share" class="big">Share</button>
+        <p id="countdown"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/fuzzy.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>

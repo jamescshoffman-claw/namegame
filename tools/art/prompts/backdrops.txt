@@ -1,0 +1,14 @@
+16-bit pixel art decorative sky elements sheet, Stardew Valley style, crisp
+chunky pixels, no anti-aliasing. A 3x3 grid of elements, each centered in its
+own cell with generous margin, plain background, no text:
+
+row 1: a warm rising sun with soft rays; a fluffy white cloud; a longer thin
+wispy cloud.
+
+row 2: a crescent moon with two small craters; a four-pointed twinkling star;
+a ringed gas giant planet in dusty orange.
+
+row 3: a small red rocky planet; a blue planet with a tiny grey moon; a
+distant spiral galaxy swirl in purple and white.
+
+Consistent palette, at most 16 colors total.

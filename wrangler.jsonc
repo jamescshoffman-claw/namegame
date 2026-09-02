@@ -4,6 +4,7 @@
   "assets": {
     "directory": "./public"
   },
+  "workers_dev": true,
   "routes": [
     { "pattern": "namegame.fun", "custom_domain": true },
     { "pattern": "www.namegame.fun", "custom_domain": true }

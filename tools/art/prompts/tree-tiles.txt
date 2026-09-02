@@ -1,0 +1,17 @@
+16-bit pixel art tileset for a vertically climbing game, Stardew Valley
+style, crisp chunky pixels, no anti-aliasing. A 2x2 grid of four tiles, each
+centered in its own quadrant with generous margin, plain background, no text:
+
+top-left: a vertical section of oak tree trunk, straight, seamlessly tileable
+top-to-bottom, warm brown bark with darker vertical ridges and a few knots.
+
+top-right: a single horizontal tree branch pointing RIGHT, slightly gnarled,
+same bark palette, with a lush cluster of green oak leaves at the tip.
+
+bottom-left: the base of the tree at ground level: trunk flaring into roots,
+tufts of grass, a few small flowers, small dirt mound.
+
+bottom-right: a standalone leaf cluster, three overlapping rounded masses of
+green oak leaves with lighter highlight pixels on top.
+
+Consistent warm palette matching a sunrise-lit orchard. At most 12 colors.
