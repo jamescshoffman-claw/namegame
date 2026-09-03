@@ -1,0 +1,16 @@
+# Code and markup must always revalidate (etag 304s keep it cheap) so a
+# deploy — especially the daily-schedule data — reaches everyone on next load.
+/index.html
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache
+/js/*
+  Cache-Control: no-cache
+/style.css
+  Cache-Control: no-cache
+/manifest.json
+  Cache-Control: no-cache
+
+# Art rarely changes and can cache for a day.
+/assets/*
+  Cache-Control: public, max-age=86400
