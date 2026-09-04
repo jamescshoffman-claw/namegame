@@ -26,6 +26,7 @@
     '🗣': 'speech', '🎬': 'clapper', '🎸': 'guitar', '⚡': 'bolt',
     '🌳': 'tree', '🏯': 'pagoda', '🏎': 'kart', '💎': 'gem',
     '🧸': 'toy', '🎮': 'controller', '🏢': 'building',
+    '📚': 'book', '🌸': 'flower', '👟': 'sneaker',
   };
   function icon(name, dir = 'assets/icons/') {
     return `<img class="icon" src="${dir}${name}.png" alt="">`;

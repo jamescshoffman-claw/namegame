@@ -1,0 +1,16 @@
+16-bit pixel art icon set, Stardew Valley style, crisp chunky pixels, no
+anti-aliasing, clean dark outlines, bright readable colors. A 2x2 grid of 4
+small game icons, each centered in its own cell with generous empty margin,
+nothing touching cell edges, plain background, no text, no grid lines.
+Each icon must read clearly even when tiny:
+
+top-left: a single pink flower with five petals and a yellow center on a
+short green stem.
+
+top-right: a white-and-red sneaker running shoe seen from the side.
+
+bottom-left: a golden royal crown with three points and red jewels.
+
+bottom-right: a shining gold five-pointed star.
+
+Consistent warm palette across all 4 icons, at most 16 colors total.
