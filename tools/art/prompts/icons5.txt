@@ -1,0 +1,21 @@
+16-bit pixel art icon set, Stardew Valley style, crisp chunky pixels, no
+anti-aliasing, clean dark outlines, bright readable colors. A 4x4 grid of 16
+small game icons, each centered in its own cell with generous empty margin,
+nothing touching cell edges, plain background, no text, no grid lines.
+Each icon must read clearly even when tiny:
+
+row 1: a glass science flask with bubbling green liquid; a red paper soda cup
+with a lid and a striped straw; a friendly green T-rex dinosaur seen from the
+side; a black top hat with a red band.
+
+row 2: a red mushroom with white spots; a martini cocktail glass with a green
+olive; a white domed capitol building with columns; a gold trophy cup with
+two handles.
+
+row 3: a brass key; a red heart; a white snowflake; a blue fish seen from the
+side.
+
+row 4: a brown coffee mug with steam; a silver bell; a ship's anchor; a
+golden crown with jewels.
+
+Consistent warm palette across all 16 icons, at most 24 colors total.

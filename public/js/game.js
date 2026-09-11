@@ -27,6 +27,12 @@
     '🌳': 'tree', '🏯': 'pagoda', '🏎': 'kart', '💎': 'gem',
     '🧸': 'toy', '🎮': 'controller', '🏢': 'building',
     '📚': 'book', '🌸': 'flower', '👟': 'sneaker',
+    '🐦': 'bird', '🧀': 'cheese', '🦸': 'hero', '🍫': 'chocolate',
+    '💰': 'coin', '🏰': 'castle', '🌿': 'herb', '🏈': 'football',
+    '🔴': 'pokeball', '🎲': 'dice', '🗺': 'map', '🥣': 'cereal',
+    '🪐': 'planet', '🪄': 'wand', '⚔': 'lightsaber', '🍝': 'pasta',
+    '⚗': 'flask', '🥤': 'soda', '🦖': 'dino', '🎩': 'tophat',
+    '🍄': 'mushroom', '🍸': 'cocktail', '🏛': 'capitol',
   };
   function icon(name, dir = 'assets/icons/') {
     return `<img class="icon" src="${dir}${name}.png" alt="">`;

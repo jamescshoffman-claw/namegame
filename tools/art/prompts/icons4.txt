@@ -1,0 +1,22 @@
+16-bit pixel art icon set, Stardew Valley style, crisp chunky pixels, no
+anti-aliasing, clean dark outlines, bright readable colors. A 4x4 grid of 16
+small game icons, each centered in its own cell with generous empty margin,
+nothing touching cell edges, plain background, no text, no grid lines.
+Each icon must read clearly even when tiny:
+
+row 1: a small blue songbird perched, seen from the side; a yellow wedge of
+Swiss cheese with holes; a red superhero mask with a flowing red cape behind
+it; a brown chocolate candy bar with one corner unwrapped from gold foil.
+
+row 2: a stack of three gold coins; a grey stone fairy-tale castle with a
+blue pointed roof and a flag; a sprig of green herb leaves; a brown American
+football with white laces.
+
+row 3: a red-and-white Poké Ball; a pair of white dice showing dots; a folded
+paper map with a red X; a blue bowl of cereal with a spoon.
+
+row 4: a ringed orange planet like Saturn; a wooden magic wand with sparkles;
+a blue glowing laser sword with a silver hilt; a swirl of yellow spaghetti
+noodles on a fork.
+
+Consistent warm palette across all 16 icons, at most 24 colors total.
