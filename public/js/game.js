@@ -33,6 +33,17 @@
     '🪐': 'planet', '🪄': 'wand', '⚔': 'lightsaber', '🍝': 'pasta',
     '⚗': 'flask', '🥤': 'soda', '🦖': 'dino', '🎩': 'tophat',
     '🍄': 'mushroom', '🍸': 'cocktail', '🏛': 'capitol',
+    // days 38-51
+    '🏀': 'ball', '⚾': 'ball', '🏒': 'trophy', '🏙': 'capitol',
+    '✈': 'rocket', '🕴': 'tophat', '🎥': 'clapper', '🍩': 'cereal',
+    '🕹': 'controller', '📺': 'clapper', '🥁': 'guitar', '🎞': 'clapper',
+    '💍': 'crown', '🍳': 'flask', '👕': 'sneaker', '🥞': 'cereal',
+    '🍰': 'icecream', '🦴': 'heart', '🛋': 'building', '🫙': 'herb',
+    '🌊': 'anchor', '🗼': 'castle', '🌆': 'building', '⛰': 'tree',
+    '🏝': 'map', '✨': 'star2', '🐙': 'fish', '🎵': 'guitar',
+    '🍺': 'cocktail', '👷': 'tophat', '🐝': 'bird', '🚜': 'car',
+    '🎄': 'snowflake', '🎙': 'guitar', '⚜': 'crown2', '🔬': 'flask',
+    '🎭': 'book', '🏺': 'gem', '🖌': 'palette',
   };
   function icon(name, dir = 'assets/icons/') {
     return `<img class="icon" src="${dir}${name}.png" alt="">`;
