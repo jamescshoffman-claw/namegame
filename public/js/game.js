@@ -44,6 +44,18 @@
     '🍺': 'cocktail', '👷': 'tophat', '🐝': 'bird', '🚜': 'car',
     '🎄': 'snowflake', '🎙': 'guitar', '⚜': 'crown2', '🔬': 'flask',
     '🎭': 'book', '🏺': 'gem', '🖌': 'palette',
+    // days 51-64
+    '🐈': 'lion', '🌎': 'globe', '🔨': 'key', '🦹': 'hero',
+    '🦬': 'lion', '🥪': 'burger', '🎶': 'guitar', '🏜': 'map',
+    '👒': 'tophat', '🐉': 'dino', '🥜': 'acorn', '🌮': 'pizza',
+    '🐊': 'dino', '🏅': 'trophy', '🧵': 'sneaker', '🦇': 'hero',
+    '🌋': 'bolt', '🍞': 'cereal', '🧽': 'fish', '🌪': 'snowflake',
+    '🥧': 'icecream', '🃏': 'dice', '🦘': 'lion', '🍪': 'chocolate',
+    '🐺': 'crown', '✍': 'book', '💃': 'star2', '📕': 'book',
+    '🧭': 'map', '🍲': 'cereal', '🔪': 'clapper', '👹': 'alien',
+    '🍬': 'chocolate', '🎤': 'speech', '🏞': 'tree', '☕': 'coffee',
+    '📎': 'building', '🔷': 'gem', '💇': 'palette', '🕷': 'hero',
+    '💻': 'controller', '🎼': 'guitar',
   };
   function icon(name, dir = 'assets/icons/') {
     return `<img class="icon" src="${dir}${name}.png" alt="">`;
