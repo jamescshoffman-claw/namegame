@@ -3792,7 +3792,7 @@ const GameData = (() => {
     ['starwars', 'pastashapes', 'elements'],               // day 16 — Sep 16
     ['sodabrands', 'dinosaurs', 'uspresidents'],           // day 17 — Sep 17
     ['nintendo', 'cocktails', 'capitals'],                 // day 18 — Sep 18
-    // Days 19-37 were served as repeats of days 1-18 (the schedule had run out). They are
+    // Days 19-36 were served as repeats of days 1-18 (the schedule had run out). They are
     // written out here so each day's index keeps matching the categories players actually saw.
     ['fruits', 'fastfood', 'countriesS'],                 // day 19 — Sep 19 (repeat of day 1)
     ['mammals', 'sports', 'colors'],                      // day 20 — Sep 20 (repeat of day 2)
@@ -3812,21 +3812,20 @@ const GameData = (() => {
     ['starwars', 'pastashapes', 'elements'],              // day 34 — Oct 4 (repeat of day 16)
     ['sodabrands', 'dinosaurs', 'uspresidents'],          // day 35 — Oct 5 (repeat of day 17)
     ['nintendo', 'cocktails', 'capitals'],                // day 36 — Oct 6 (repeat of day 18)
-    ['fruits', 'fastfood', 'countriesS'],                 // day 37 — Oct 7 (repeat of day 1)
-    ['nbateams', 'africancountries', 'kitchentools'],     // day 38 — Oct 8
-    ['mcumovies', 'rivers', 'clothing'],                  // day 39 — Oct 9
-    ['simpsons', 'landmarks', 'breakfastfoods'],          // day 40 — Oct 10
-    ['mlbteams', 'uscities', 'desserts'],                 // day 41 — Oct 11
-    ['videogamefranchises', 'mountains', 'bodyparts'],    // day 42 — Oct 12
-    ['sitcoms', 'oceansseas', 'seacreatures'],            // day 43 — Oct 13
-    ['rockbands', 'islands', 'musicgenres'],              // day 44 — Oct 14
-    ['nhlteams', 'statecapitals', 'furniture'],           // day 45 — Oct 15
-    ['cartoons', 'constellations', 'beerbrands'],         // day 46 — Oct 16
-    ['lordoftherings', 'airlines', 'jobs'],               // day 47 — Oct 17
-    ['singers', 'romangods', 'condiments'],               // day 48 — Oct 18
-    ['soccerclubs', 'scientists', 'insects'],             // day 49 — Oct 19
-    ['shakespeare', 'ancientcivilizations', 'vehicles'],  // day 50 — Oct 20
-    ['jamesbond', 'painters', 'holidays'],                // day 51 — Oct 21
+    ['nbateams', 'africancountries', 'kitchentools'],     // day 37 — Oct 7
+    ['mcumovies', 'rivers', 'clothing'],                  // day 38 — Oct 8
+    ['simpsons', 'landmarks', 'breakfastfoods'],          // day 39 — Oct 9
+    ['mlbteams', 'uscities', 'desserts'],                 // day 40 — Oct 10
+    ['videogamefranchises', 'mountains', 'bodyparts'],    // day 41 — Oct 11
+    ['sitcoms', 'oceansseas', 'seacreatures'],            // day 42 — Oct 12
+    ['rockbands', 'islands', 'musicgenres'],              // day 43 — Oct 13
+    ['nhlteams', 'statecapitals', 'furniture'],           // day 44 — Oct 14
+    ['cartoons', 'constellations', 'beerbrands'],         // day 45 — Oct 15
+    ['lordoftherings', 'airlines', 'jobs'],               // day 46 — Oct 16
+    ['singers', 'romangods', 'condiments'],               // day 47 — Oct 17
+    ['soccerclubs', 'scientists', 'insects'],             // day 48 — Oct 18
+    ['shakespeare', 'ancientcivilizations', 'vehicles'],  // day 49 — Oct 19
+    ['jamesbond', 'painters', 'holidays'],                // day 50 — Oct 20
   ];
 
   function dayIndex(now = new Date()) {
